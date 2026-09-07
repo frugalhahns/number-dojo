@@ -77,6 +77,10 @@ for (const g of GYMS) {
           const at = label + ' step ' + (k + 1);
           ok(Number.isInteger(st.answer), at + ': answer is not a whole number (' + st.answer + ')');
           ok(st.answer >= 0, at + ': answer is negative (' + st.answer + ')');
+          /* A step whose answer is nothing is a step that asks nothing. Every
+             one of these has been a generator putting the same digit in the
+             same column of both numbers, and on screen it reads as a bug. */
+          ok(st.answer !== 0, at + ': answers 0, which is a step worth nobody\'s time ("' + st.line + '")');
           ok(st.answer < 100000, at + ': answer is enormous (' + st.answer + ')');
           ok(String(st.line).split('?').length === 2, at + ': line needs exactly one blank, has "' + st.line + '"');
           ok(!!st.prompt && st.prompt.length > 8, at + ': prompt too short');

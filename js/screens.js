@@ -217,8 +217,12 @@ function rungSheet(sh, g) {
     return pickCandidate;
   }
 
-  sheet(sh.example, body => {
-    body.appendChild(el('p', 'idea', sh.name + '. ' + g.idea));
+  /* The rung's name, never its canonical example. The card he tapped says
+     "324 + 324", but the problem being worked is a different one, and two
+     unrelated sums on screen at once is a reading puzzle nobody asked for: the
+     only number sentence in here should be the one he is actually following. */
+  sheet(sh.name, body => {
+    body.appendChild(el('p', 'idea', g.idea));
     /* The problem sits above the walkthrough and is redrawn on every click, so
        the digits being changed light up as each step is revealed. Watching
        somebody explain 185 + 4 is no use if you cannot see which number they

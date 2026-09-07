@@ -122,10 +122,10 @@ export const split = {
     return true;
   },
   gen(r, level) {
-    const ao = ri(r, 4, 9), bo = ri(r, 1, ao);       // no regroup, by construction
+    const ao = ri(r, 4, 9), bo = ri(r, 1, ao - 1);   // no regroup and no empty column
     if (level <= 1) return { a: ri(r, 3, 9) * 10 + ao, b: ri(r, 1, 2) * 10 + bo };
     if (level === 2) return { a: ri(r, 5, 9) * 10 + ao, b: ri(r, 1, 4) * 10 + bo };
-    const at = ri(r, 3, 9), bt = ri(r, 1, at);
+    const at = ri(r, 3, 9), bt = ri(r, 1, at - 1);
     return { a: ri(r, 4, 9) * 100 + at * 10 + ao, b: ri(r, 1, 3) * 100 + bt * 10 + bo };
   },
   build(p) {
@@ -259,10 +259,14 @@ export const ones = {
   id: 'sub.ones', op: 'sub', name: 'Just the Ones', move: 'Ones Only',
   blurb: 'The ones are big enough on their own. Take them away and leave the tens alone.',
   levels: 2,
-  fits: p => p.b >= 1 && p.b <= 9 && p.a >= 10 && (p.a % 10) >= p.b,
+  /* Strictly bigger, not merely big enough. If the ones are equal the first
+     step is "5 - 5" and the second is "40 + 0", which is a whole problem that
+     asks nothing. Nothing else can do those numbers either, so the rung draws
+     again rather than serving one. */
+  fits: p => p.b >= 1 && p.b <= 9 && p.a >= 10 && (p.a % 10) > p.b,
   gen(r, level) {
-    const o = ri(r, 2, 9);
-    const b = ri(r, 1, o);
+    const o = ri(r, 3, 9);
+    const b = ri(r, 2, o - 1);
     const a = level <= 1 ? ri(r, 2, 9) * 10 + o : ri(r, 1, 9) * 100 + ri(r, 0, 9) * 10 + o;
     return { a, b };
   },

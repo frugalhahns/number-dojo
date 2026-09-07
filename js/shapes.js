@@ -118,7 +118,7 @@ export const ADD_SHAPES = [
 
 const subOnes = (r, base) => {                 // the ones are big enough: 45 - 3
   const o = ri(r, 3, 9);
-  return { a: base(r) + o, b: ri(r, 2, o) };
+  return { a: base(r) + o, b: ri(r, 2, o - 1) };
 };
 const subBorrow = (r, base) => {               // they are not: 45 - 8
   const o = ri(r, 1, 7);
@@ -168,8 +168,10 @@ export const SUB_SHAPES = [
     uses: ['sub.split', 'sub.back', 'sub.shift', 'sub.countup'],
     gen(r, level) {
       if (level <= 1) {                               // no borrowing
-        const o1 = ri(r, 4, 9);
-        return { a: ri(r, 4, 9) * 10 + o1, b: ri(r, 1, 3) * 10 + ri(r, 1, o1) };
+        /* Strictly smaller in each column, not merely no bigger: "6 - 6 = 0" is
+           a step that asks nothing and reads like a mistake. */
+        const o1 = ri(r, 3, 9);
+        return { a: ri(r, 4, 9) * 10 + o1, b: ri(r, 1, 3) * 10 + ri(r, 1, o1 - 1) };
       }
       if (level === 2) {                              // borrowing
         const o1 = ri(r, 1, 7);
@@ -188,9 +190,9 @@ export const SUB_SHAPES = [
     uses: ['sub.split', 'sub.back', 'sub.shift', 'sub.countup'],
     gen(r, level) {
       if (level <= 1) {                               // no borrowing
-        const o1 = ri(r, 4, 9), t1 = ri(r, 4, 9);
+        const o1 = ri(r, 3, 9), t1 = ri(r, 3, 9);
         return { a: ri(r, 4, 9) * 100 + t1 * 10 + o1,
-                 b: ri(r, 1, 3) * 100 + ri(r, 1, t1) * 10 + ri(r, 1, o1) };
+                 b: ri(r, 1, 3) * 100 + ri(r, 1, t1 - 1) * 10 + ri(r, 1, o1 - 1) };
       }
       if (level === 2) {                              // the ones borrow
         const o1 = ri(r, 1, 7), t1 = ri(r, 4, 9);

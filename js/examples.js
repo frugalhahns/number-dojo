@@ -86,9 +86,12 @@ function draw() {
 
   for (const sh of SHAPES_FOR(op)) {
     const sec = el('section', 'exsec');
+    /* Heading by name, with the canonical example demoted to small muted text.
+       Set in the same big monospace as a real problem it reads as one, and the
+       page is wall to wall real problems. */
     const h = el('h2', 'exsech');
-    h.appendChild(el('b', 'rex', sh.example));
-    h.appendChild(el('span', '', sh.name));
+    h.appendChild(el('b', '', sh.name));
+    h.appendChild(el('span', 'exeg', 'the ' + sh.example + ' kind'));
     sec.appendChild(h);
     let n = 0;
     for (let i = 0; i < perRung; i++) {

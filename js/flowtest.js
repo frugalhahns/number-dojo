@@ -92,6 +92,12 @@ export async function run() {
     $$('.movecard')[g % $$('.movecard').length].click();
     await until(() => !$('#sheet').classList.contains('hidden'), 'the move sheet to open');
     ok($$('#sheet .bigsum .lit').length === 0, gymName + ' the walkthrough starts with nothing lit');
+    /* Only one number sentence in here, and it is the one being worked. A
+       second sum in the title corner is a reading puzzle. */
+    ok(!/\d+\s*[+\u2212\u00d7\u00f7-]\s*\d+/.test($('#sheet .sheet-title').textContent),
+       gymName + ' the sheet title names the rung rather than showing a second sum ("' + $('#sheet .sheet-title').textContent + '")');
+    ok($$('#sheet .bigsum').length === 1,
+       gymName + ' exactly one problem on screen in the walkthrough, saw ' + $$('#sheet .bigsum').length);
     {
       const first = btn('Show me the first step');
       first.click();

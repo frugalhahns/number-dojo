@@ -435,6 +435,7 @@ svg.board .grp.dim { opacity: .3; }
   border-bottom: 2px solid var(--line); padding-bottom: 6px;
 }
 .exsech span { color: var(--ink-dim); font-weight: 600; }
+.exeg { font-size: .82rem; font-weight: 500; }
 .ex {
   background: var(--card); border: 1px solid var(--line); border-radius: 12px;
   padding: 10px 14px; margin-bottom: 10px; break-inside: avoid;

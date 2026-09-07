@@ -106,6 +106,14 @@ that matters fixed. They are the ones worth watching him get.
 - **Difficulty only ever goes up.** Three problems in a row with no misses moves
   a move up a level, and nothing moves it back down. A bad five minutes cannot
   undo a good week.
+- **One number sentence at a time.** A walkthrough is titled by the rung's name,
+  never by the rung's canonical example: the card he tapped says `324 + 324`, but
+  the problem being worked is a different one, and two unrelated sums on screen
+  at once is a reading puzzle nobody asked for.
+- **No step ever answers zero.** `785 − 181` used to spend a whole step on
+  `80 − 80 = 0`. Every instance of this has been a generator putting the same
+  digit in the same column of both numbers, and on screen it reads as a bug, so
+  the self test now forbids it outright across every strategy and every rung.
 - **The step he is on is marked.** In a walkthrough, pressing *then what* does
   not just add a line to a list: the newly uncovered step gets the same border
   and the same coloured number as the live blank on the solve screen, so "the
