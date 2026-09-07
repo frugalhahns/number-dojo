@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Number Dojo self test</title>
+<style>
+  body { font: 15px/1.5 ui-monospace, Menlo, monospace; background: #101826; color: #eef3fa; padding: 18px; }
+  h1 { font-size: 1.2rem; }
+  .fail { color: #ff8a8d; }
+  .good { color: #6ede8a; font-size: 1.3rem; font-weight: 700; }
+  li { margin: 2px 0; }
+</style>
+</head>
+<body>
+<h1>Number Dojo self test</h1>
+<div id="out">running...</div>
+<script type="module">
+  import { report, checkKeys, checkSprites, checkStyle } from './js/selftest.js';
+  const out = document.getElementById('out');
+  Promise.all([checkKeys(), checkSprites(), checkStyle()]).then(() => {
+    const { pass, fails } = report();
+    if (!fails.length) {
+      out.innerHTML = '<p class="good">PASS: ' + pass + ' checks</p>';
+    } else {
+      out.innerHTML = '<p class="fail">FAIL: ' + fails.length + ' distinct faults, ' + pass + ' checks passed</p><ul class="fail">' +
+        fails.slice(0, 80).map(f => '<li>' + f.replace(/[<>&]/g, c => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;' }[c])) + '</li>').join('') +
+        (fails.length > 80 ? '<li>... and ' + (fails.length - 80) + ' more</li>' : '') + '</ul>';
+    }
+    document.documentElement.dataset.done = '1';
+  });
+</script>
+</body>
+</html>

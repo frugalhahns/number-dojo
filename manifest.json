@@ -1,0 +1,13 @@
+{
+  "name": "Number Dojo",
+  "short_name": "Dojo",
+  "description": "Break a maths problem into pieces you already know.",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#101826",
+  "theme_color": "#101826",
+  "orientation": "any",
+  "icons": [
+    { "src": "sprites/still/25.png", "sizes": "96x96", "type": "image/png", "purpose": "any" }
+  ]
+}

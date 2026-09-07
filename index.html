@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Number Dojo: break a math problem into pieces</title>
+<meta name="description" content="Third grade mental math, taught as twenty ways to break a problem into pieces you already know. Addition, subtraction, multiplication and division, one blank at a time.">
+<meta name="theme-color" content="#101826">
+<script>
+  /* Resolve the theme before first paint so light mode never flashes dark. The
+     key is rebuilt here rather than imported, because this has to be
+     synchronous and js/state.js is a module; selftest.html checks the two
+     spellings have not drifted apart. */
+  (function () {
+    var pref = 'auto';
+    try {
+      var slot = localStorage.getItem('nd.slot');
+      if (slot !== '2' && slot !== '3') slot = '1';
+      var key = slot === '1' ? 'nd.save.v1' : 'nd.save.v1.s' + slot;
+      pref = (JSON.parse(localStorage.getItem(key) || '{}').theme) || 'auto';
+    } catch (e) {}
+    var light = pref === 'light' ||
+      (pref !== 'dark' && window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches);
+    document.documentElement.dataset.theme = light ? 'light' : 'dark';
+    if (light) {
+      var bar = document.querySelector('meta[name="theme-color"]');
+      if (bar) bar.setAttribute('content', '#f2f5fa');
+    }
+  })();
+</script>
+<link rel="stylesheet" href="css/dojo.css">
+<link rel="manifest" href="manifest.json">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Number Dojo">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='26' font-size='26'>&#129518;</text></svg>">
+</head>
+<body data-hue="home">
+
+<header id="topbar" class="hidden"></header>
+
+<main id="app" class="screen"></main>
+
+<div id="sheet" class="hidden" role="dialog" aria-modal="true">
+  <div id="sheet-card">
+    <button id="sheet-close" type="button" aria-label="Close">&times;</button>
+    <div id="sheet-body"></div>
+  </div>
+</div>
+
+<div id="toast" class="hidden" role="status"></div>
+<div id="fx" aria-hidden="true"></div>
+
+<script type="module" src="js/main.js"></script>
+</body>
+</html>

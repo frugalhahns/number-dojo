@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Number Dojo flow test</title>
+<link rel="stylesheet" href="css/dojo.css">
+<style>
+  #report { position: fixed; right: 0; top: 0; bottom: 0; width: 46%; overflow: auto; z-index: 999;
+            background: #0b0f18; color: #eef3fa; font: 12px/1.45 ui-monospace, Menlo, monospace; padding: 10px; }
+  #report .f { color: #ff8a8d; font-weight: 700; }
+  #report h2 { font-size: 1rem; margin: 0 0 6px; }
+  #report .pass { color: #6ede8a; } body { padding-right: 47%; }
+</style>
+</head>
+<body data-hue="home">
+<div id="report"><h2>running the flow test...</h2></div>
+<script type="module">
+  /* The real page, markup and all, so this test cannot pass against a shell
+     that has drifted away from index.html. */
+  const html = await fetch('index.html').then(r => r.text());
+  const doc = new DOMParser().parseFromString(html, 'text/html');
+  const report = document.getElementById('report');
+  for (const node of Array.from(doc.body.children)) {
+    if (node.tagName === 'SCRIPT') continue;
+    document.body.appendChild(document.importNode(node, true));
+  }
+  document.body.appendChild(report);
+
+  const mod = await import('./js/flowtest.js');
+  let out;
+  try {
+    out = await mod.run();
+  } catch (e) {
+    out = mod.report();
+    out.fails++;
+    out.log.push('FAIL threw: ' + (e && e.stack || e));
+    document.documentElement.dataset.done = '1';
+  }
+  report.innerHTML = '<h2 class="' + (out.fails ? 'f' : 'pass') + '">' +
+    (out.fails ? 'FAIL: ' + out.fails + ' problems' : 'PASS: ' + out.log.filter(l => l.startsWith('ok')).length + ' checks') +
+    '</h2>' + out.log.map(l => '<div class="' + (l.startsWith('FAIL') ? 'f' : '') + '">' +
+      l.replace(/[<>&]/g, c => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;' }[c])) + '</div>').join('');
+</script>
+</body>
+</html>

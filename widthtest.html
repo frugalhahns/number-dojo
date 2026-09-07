@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Number Dojo width test</title>
+<style>
+  body { font: 13px/1.5 ui-monospace, Menlo, monospace; background: #101826; color: #eef3fa; padding: 16px; margin: 0; }
+  h1 { font-size: 1.1rem; }
+  .f { color: #ff8a8d; } .p { color: #6ede8a; }
+  #frames { position: absolute; left: -9999px; top: 0; }
+  pre { white-space: pre-wrap; }
+</style>
+</head>
+<body>
+<h1>Number Dojo width test</h1>
+<p>Nothing may stick out sideways at any width a phone, a tablet or a school Chromebook can be. An iframe is used rather than a resized window because headless Chrome refuses to make a window narrower than 500 CSS pixels, so a screenshot at 360 is a crop of a 500 wide layout and proves nothing.</p>
+<pre id="out">running...</pre>
+<div id="frames"></div>
+<script type="module">
+  /* Every width worth caring about: the narrowest phone still in use, the
+     common ones, a tablet, and the point either side of the 620px break. */
+  const WIDTHS = [320, 360, 390, 414, 430, 600, 640, 768, 900, 1200];
+  const SCREENS = ['home', 'gym0', 'solve212', 'team', 'demo10'];
+  const out = document.getElementById('out');
+  const log = [];
+  let fails = 0;
+
+  for (const at of SCREENS) {
+    for (const w of WIDTHS) {
+      const f = document.createElement('iframe');
+      f.style.cssText = 'width:' + w + 'px;height:1500px;border:0';
+      f.src = 'shot.html?at=' + at + '&seed=1&w=' + w;
+      document.getElementById('frames').appendChild(f);
+      await new Promise(r => { f.onload = r; setTimeout(r, 8000); });
+      await new Promise(r => setTimeout(r, 900));
+      const d = f.contentDocument, cw = f.contentWindow;
+      const bad = [];
+      let tiny = 0;
+      for (const e of d.querySelectorAll('body *')) {
+        const r = e.getBoundingClientRect();
+        if (r.width === 0 && r.height === 0) continue;
+        if (r.right > cw.innerWidth + 0.5 || r.left < -0.5) {
+          bad.push(e.tagName.toLowerCase() + '.' + (e.className.baseVal !== undefined ? e.className.baseVal : e.className).split(' ')[0] + '@' + r.left.toFixed(0) + '..' + r.right.toFixed(0));
+        }
+        /* Tap targets. Anything he is meant to hit with a finger has to be big
+           enough to hit with a finger. */
+        if (e.tagName === 'BUTTON' && r.height > 0 && r.height < 34) tiny++;
+      }
+      const overflow = d.documentElement.scrollWidth > cw.innerWidth + 0.5;
+      const okRow = !bad.length && !overflow && !tiny;
+      if (!okRow) fails++;
+      log.push((okRow ? 'ok   ' : 'FAIL ') + at.padEnd(9) + String(w).padStart(5) + 'px  scroll=' + d.documentElement.scrollWidth +
+        (bad.length ? '  sticking out: ' + bad.slice(0, 3).join(' ') : '') +
+        (tiny ? '  ' + tiny + ' buttons under 34px tall' : ''));
+      f.remove();
+      out.textContent = log.join('\n');
+    }
+  }
+  out.innerHTML = '<b class="' + (fails ? 'f' : 'p') + '">' + (fails ? 'FAIL: ' + fails + ' of ' + log.length : 'PASS: ' + log.length + ' layouts') + '</b>\n' +
+    log.map(l => l.startsWith('FAIL') ? '<span class="f">' + l + '</span>' : l).join('\n');
+  document.documentElement.dataset.done = '1';
+</script>
+</body>
+</html>
