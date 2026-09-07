@@ -453,7 +453,7 @@ function helpSheet() {
 
 function grownupSheet() {
   sheet('For grown-ups', body => {
-    body.appendChild(el('p', '', 'He picks the kind of problem. The app picks the method, per problem, from whichever of its twenty-three explanations honestly fit those exact numbers. Each kind has three levels: difficulty rises after three problems in a row with no misses and never falls, so a bad five minutes cannot undo a good week.'));
+    body.appendChild(el('p', '', 'He picks the kind of problem. The app picks the method, per problem, from whichever of its twenty-five explanations honestly fit those exact numbers. Each kind has three levels: difficulty rises after three problems in a row with no misses and never falls, so a bad five minutes cannot undo a good week.'));
     const t = el('div', 'gtable');
     for (const g of GYMS) {
       t.appendChild(el('div', 'gt-head', g.what));

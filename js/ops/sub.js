@@ -114,12 +114,19 @@ export const split = {
   levels: 3,
   /* Every column has to be big enough to lose what is coming off it, or this
      method teaches the "little from big" mistake. */
+  /* Strictly bigger in every column, not merely no smaller. Equal digits give a
+     column that comes out at nothing, and "80 - 80 = 0" is a step that asks
+     nothing and reads like a mistake. */
   fits(p) {
     if (p.a < 10 || p.b < 10 || p.a >= 1000 || p.b >= 1000) return false;
-    if ((p.a >= 100) !== (p.b >= 100)) return false;
-    if (p.a % 10 < p.b % 10) return false;
-    if (Math.floor(p.a / 10) % 10 < Math.floor(p.b / 10) % 10) return false;
-    return true;
+    if (p.a % 10 <= p.b % 10) return false;
+    if (Math.floor(p.a / 10) % 10 <= Math.floor(p.b / 10) % 10) return false;
+    if ((p.a >= 100) === (p.b >= 100)) {
+      return p.a < 100 || Math.floor(p.a / 100) > Math.floor(p.b / 100);
+    }
+    /* Three digits take two: no hundreds column to do, and there has to be a
+       tens column on top to take from. */
+    return p.a >= 100 && p.b < 100 && p.a % 100 >= 10;
   },
   gen(r, level) {
     const ao = ri(r, 4, 9), bo = ri(r, 1, ao - 1);   // no regroup and no empty column
@@ -133,7 +140,21 @@ export const split = {
     const ao = a % 10, bo = b % 10, ones = ao - bo;
     const steps = [];
     let parts;
-    if (a >= 100) {
+    if (a >= 100 && b < 100) {
+      /* Three digits take two: the hundreds are not in the subtraction at all,
+         so they do not get a step of their own. */
+      const front = floorTo(a, 100);
+      const aT = a % 100 - ao, bT = b - bo, tens = aT - bT;
+      steps.push(step('Only the last two digits of ' + a + ' are in this. Tens take tens.',
+        aT + ' − ' + bT + ' = ?', tens,
+        { focus: lit('tens', 'tens'), hint: 'Think ' + (aT / 10) + ' − ' + (bT / 10) + ' tens.' }));
+      steps.push(step('Ones take ones.', ao + ' − ' + bo + ' = ?', ones,
+        { focus: lit('ones', 'ones') }));
+      steps.push(step('The ' + front + ' never moved. Put the three together.',
+        front + ' + ' + tens + ' + ' + ones + ' = ?', diff,
+        { focus: lit('all', 'all'), why: front + ' + ' + tens + ' + ' + ones + ' = ' + diff + '.' }));
+      parts = front + ' + ' + tens + ' + ' + ones;
+    } else if (a >= 100) {
       const ah = floorTo(a, 100), bh = floorTo(b, 100), hun = ah - bh;
       const at = a % 100 - ao, bt = b % 100 - bo, tens = at - bt;
       steps.push(step('Hundreds take hundreds.', ah + ' − ' + bh + ' = ?', hun, { focus: lit('hundreds', 'hundreds'),}));
@@ -293,4 +314,51 @@ export const ones = {
   }
 };
 
-export const SUB = [ones, countup, back, split, shift, scale];
+/* ------------------------------------------------------------------ keep --- */
+/* 458 - 48. Nothing is coming off the hundreds, so they can sit the whole thing
+   out and what is left is a two digit subtraction. The mirror of add.keep, and
+   the same idea as Work in Tens from the other end. */
+export const keep = {
+  id: 'sub.keep', op: 'sub', name: 'Put the Hundreds Down', move: 'Hold the Front',
+  blurb: 'Nothing reaches the hundreds, so set them aside and take it off what is left.',
+  levels: 3,
+  /* Strictly bigger, so the middle step never comes out at nothing, and the
+     last two digits must be big enough on their own or a hundred would have to
+     be broken and the hundreds would not be sitting anything out. */
+  fits: p => p.a >= 100 && p.a < 1000 && p.b >= 10 && p.b < 100 && (p.a % 100) > p.b,
+  gen(r, level) {
+    const b = level <= 1 ? ri(r, 11, 39) : ri(r, 21, 79);
+    const rest = ri(r, b + 1, 99);
+    return { a: ri(r, 1, 8) * 100 + rest, b };
+  },
+  build(p) {
+    const { a, b } = p, diff = a - b;
+    const front = Math.floor(a / 100) * 100, rest = a % 100, small = rest - b;
+    return chain({
+      title: a + ' − ' + b, strategy: this.id, answer: diff,
+      recap: front + ' + (' + rest + ' − ' + b + ')  =  ' + front + ' + ' + small + '  =  ' + diff,
+      steps: [
+        step('Nothing here reaches the hundreds, so the hundreds of ' + a + ' can sit this one out. Put them down for a moment.',
+          a + ' − ' + b + ' → put down ?', front,
+          { focus: lit('hundreds'),
+            hint: 'Written out in full, not just the digit.',
+            why: 'The ' + front + ' goes on the table. What is left is a small subtraction.' }),
+        step('Now take it off the part that can actually change.',
+          rest + ' − ' + b + ' = ?', small,
+          { focus: lit('tail2', 'all'),
+            hint: 'A two digit subtraction, and you know several ways to do those.',
+            why: rest + ' − ' + b + ' = ' + small + '.',
+            more: back.fits({ a: rest, b }) ? back.build({ a: rest, b })
+                : split.fits({ a: rest, b }) ? split.build({ a: rest, b }) : null }),
+        step('Pick the hundreds back up.',
+          front + ' + ' + small + ' = ?', diff,
+          { focus: lit('hundreds'),
+            hint: 'The hundreds digit has not moved at all.',
+            why: front + ' + ' + small + ' = ' + diff + '.' })
+      ],
+      board: blocks([{ n: a, label: String(a) + ', take away ' + b, after: -1 }])
+    });
+  }
+};
+
+export const SUB = [ones, countup, back, split, keep, shift, scale];

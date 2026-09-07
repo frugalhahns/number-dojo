@@ -29,7 +29,7 @@ came from when it finishes. That recursion is the actual idea being taught.
 
 ## The ladder
 
-He picks what the problem **looks like**, never which method to use. Eighteen
+He picks what the problem **looks like**, never which method to use. Twenty
 rungs across the four operations, each with three levels inside it, and each
 rung gets harder as you go down the list.
 
@@ -39,7 +39,8 @@ rung gets harder as you go down the list.
 | 2 | `352 + 6` three digits plus one | `352 − 6` three digits take one | `6 × 30` times whole tens | `38 ÷ 5` some left over |
 | 3 | `564 + 70` adding whole tens | `634 − 70` taking whole tens | `4 × 23` two digits times one | `240 ÷ 6` sharing whole tens |
 | 4 | `53 + 35` two digits plus two | `73 − 28` two digits take two | `7 × 213` three digits times one | `72 ÷ 6` more than ten each |
-| 5 | `324 + 324` three digits plus three | `524 − 318` three digits take three | | |
+| 5 | `534 + 34` three digits plus two | `534 − 34` three digits take two | | |
+| 6 | `324 + 324` three digits plus three | `524 − 318` three digits take three | | |
 
 The three levels inside a rung are the thing he never has to think about. "Two
 digits plus two" starts without carrying, then carries, then mixes. "Two digits
@@ -47,7 +48,7 @@ take two" starts without borrowing, then borrows, then throws in the occasional
 close pair like `71 − 68` so that noticing *which* method to reach for becomes
 its own skill.
 
-## The twenty-three methods
+## The twenty-five methods
 
 A **shape** owns the numbers. A **strategy** owns the explanation. The join
 between them is `strategy.fits(problem)`: the rung makes a problem, and whichever
@@ -58,13 +59,15 @@ asking a child to choose a method off a list.
 Each has three difficulty levels of its own for when it is driven directly.
 
 **Adding** · Just the Ones (`45 + 3 → 40 + 8`) · Bridge to Ten
-(`56 + 7 → 56 + 4 + 3`) · Split by Place (`46 + 37 → 70 + 13`) · Work in Tens
+(`56 + 7 → 56 + 4 + 3`) · Split by Place (`46 + 37 → 70 + 13`) ·
+Put the Hundreds Down (`534 + 34 → 500 + (34 + 34)`) · Work in Tens
 (`564 + 70 → 56 + 7`) · Round and Give Back (`58 + 27 → 60 + 27 − 2`) ·
 Nearly a Double (`7 + 8 → 7 + 7 + 1`)
 
 **Subtracting** · Just the Ones (`45 − 3 → 40 + 2`) · Count Up the Gap
 (`73 − 68 → 2 + 3`) · Take It Away in Pieces (`73 − 28 → −20 −3 −5`) ·
-Split by Place (`86 − 34 → 50 + 2`) · Slide Them Both (`73 − 28 → 75 − 30`) ·
+Split by Place (`86 − 34 → 50 + 2`) · Put the Hundreds Down
+(`458 − 48 → 400 + (58 − 48)`) · Slide Them Both (`73 − 28 → 75 − 30`) ·
 Work in Tens (`634 − 70 → 63 − 7`)
 
 **Multiplying** · Anchor on Five (`7 × 8 → 35 + 21`) · Ten Then Trim

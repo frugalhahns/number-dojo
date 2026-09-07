@@ -62,7 +62,13 @@ export const split = {
   levels: 3,
   /* Both numbers have to have the same shape, or the "add the hundreds" step
      is 300 + 0 and teaches nothing. */
-  fits: p => p.a >= 10 && p.b >= 10 && p.a < 1000 && p.b < 1000 && (p.a >= 100) === (p.b >= 100),
+  fits(p) {
+    if (p.a < 10 || p.b < 10 || p.a >= 1000 || p.b >= 1000) return false;
+    if ((p.a >= 100) === (p.b >= 100)) return true;
+    /* Three digits plus two. Allowed, but only when there really is a tens
+       column on top to add to, or the first step is "0 + 30". */
+    return p.a >= 100 && p.b < 100 && p.a % 100 >= 10;
+  },
   gen(r, level) {
     if (level <= 1) {                          // ones stay under ten: no carry
       const o1 = ri(r, 1, 4), o2 = ri(r, 1, 9 - o1);
@@ -80,7 +86,26 @@ export const split = {
     const ao = a % 10, bo = b % 10, ones = ao + bo;
     const steps = [];
     let running;
-    if (a >= 100 || b >= 100) {
+    if (a >= 100 && b < 100) {
+      /* Three digits plus two. There is no hundreds sum to do, so it does not
+         get a step: the hundreds simply come along at the end. Giving it one
+         anyway means opening with "500 + 0", which is the exact shape of a
+         wasted step. */
+      const front = floorTo(a, 100);
+      const aT = a % 100 - ao, bT = b - bo, tens = aT + bT;
+      steps.push(step('Only the last two digits of ' + a + ' can change. Do their tens first.',
+        aT + ' + ' + bT + ' = ?', tens,
+        { focus: lit('tens', 'tens'), hint: 'Think ' + (aT / 10) + ' + ' + (bT / 10) + ' tens.',
+          why: aT + ' + ' + bT + ' = ' + tens + '.' }));
+      steps.push(step('Now the ones, on their own.', ao + ' + ' + bo + ' = ?', ones,
+        { focus: lit('ones', 'ones'), why: ao + ' + ' + bo + ' = ' + ones + '.' }));
+      steps.push(step('The ' + front + ' was never touched. Stack all three up.',
+        front + ' + ' + tens + ' + ' + ones + ' = ?', sum,
+        { focus: lit('all', 'all'),
+          hint: ones >= 10 || tens >= 100 ? 'Some of these spill into the next column, which is fine.' : 'Straight down the columns.',
+          why: front + ' + ' + tens + ' + ' + ones + ' = ' + sum + '.' }));
+      running = { hun: front, tens, ones };
+    } else if (a >= 100 || b >= 100) {
       const ah = floorTo(a, 100), bh = floorTo(b, 100), hun = ah + bh;
       const at = a % 100 - ao, bt = b % 100 - bo, tens = at + bt;
       steps.push(step('Hundreds first, and only the hundreds.',
@@ -284,4 +309,50 @@ export const ones = {
   }
 };
 
-export const ADD = [ones, bridge, split, scale, friendly, near];
+/* ------------------------------------------------------------------ keep --- */
+/* 534 + 34. The small number has no hundreds of its own, so the hundreds can
+   sit the whole thing out and what is left is a two digit sum he can already
+   do. Same idea as Work in Tens read from the other end: find the part of the
+   big number that the small one cannot reach, and put it down. */
+export const keep = {
+  id: 'add.keep', op: 'add', name: 'Put the Hundreds Down', move: 'Hold the Front',
+  blurb: 'The small number has no hundreds, so set the hundreds aside and add what is left.',
+  levels: 3,
+  fits: p => p.a >= 100 && p.a < 1000 && p.b >= 10 && p.b < 100 && p.a % 100 >= 10,
+  gen(r, level) {
+    const rest = level <= 1 ? ri(r, 11, 49) : ri(r, 51, 89);
+    const b = level <= 1 ? ri(r, 11, 99 - rest) : ri(r, 100 - rest, 89);
+    return { a: ri(r, 1, 8) * 100 + rest, b };
+  },
+  build(p) {
+    const { a, b } = p, sum = a + b;
+    const front = Math.floor(a / 100) * 100, rest = a % 100, small = rest + b;
+    const carries = small >= 100;
+    return chain({
+      title: a + ' + ' + b, strategy: this.id, answer: sum,
+      recap: front + ' + (' + rest + ' + ' + b + ')  =  ' + front + ' + ' + small + '  =  ' + sum,
+      steps: [
+        step(b + ' has no hundreds in it at all, so the hundreds of ' + a + ' can sit this one out. Put them down for a moment.',
+          a + ' + ' + b + ' → put down ?', front,
+          { focus: lit('hundreds'),
+            hint: 'Written out in full, not just the digit.',
+            why: 'The ' + front + ' goes on the table. You are left with a small sum.' }),
+        step('Now the bit that is actually changing.',
+          rest + ' + ' + b + ' = ?', small,
+          { focus: lit('tail2', 'all'),
+            hint: 'A two digit sum, and you know several ways to do those.',
+            why: rest + ' + ' + b + ' = ' + small + '.',
+            more: split.fits({ a: rest, b }) ? split.build({ a: rest, b }) : null }),
+        step(carries ? 'That spilled past a hundred, which is fine. Pick the hundreds back up and add it on.'
+                     : 'Pick the hundreds back up.',
+          front + ' + ' + small + ' = ?', sum,
+          { focus: lit('hundreds'),
+            hint: carries ? 'The hundreds digit is going to move up by one.' : 'Nothing to carry. Just stack them.',
+            why: front + ' + ' + small + ' = ' + sum + '.' })
+      ],
+      board: blocks([{ n: a, label: String(a), after: -1 }, { n: b, label: String(b), after: -1 }])
+    });
+  }
+};
+
+export const ADD = [ones, bridge, split, keep, scale, friendly, near];

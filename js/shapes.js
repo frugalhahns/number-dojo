@@ -94,6 +94,28 @@ export const ADD_SHAPES = [
     }
   },
   {
+    /* The gap he actually meets most on a worksheet, and the one this ladder
+       was missing: a three digit number plus a two digit one. Ids are stable
+       keys and the array order is what the screen draws, so this sits fifth
+       without renumbering anything above or below it. */
+    id: 'add.s6', op: 'add', name: 'Three digits plus two', example: '534 + 34', levels: 3,
+    uses: ['add.split', 'add.keep', 'add.friendly'],
+    gen(r, level) {
+      const h = () => ri(r, 1, 8) * 100;
+      if (level <= 1) {                               // nothing carries
+        const t1 = ri(r, 1, 4), o1 = ri(r, 1, 4);
+        return { a: h() + t1 * 10 + o1, b: ri(r, 1, 8 - t1) * 10 + ri(r, 1, 9 - o1) };
+      }
+      if (level === 2) {                              // the ones carry
+        const o1 = ri(r, 4, 9), t1 = ri(r, 1, 3);
+        return { a: h() + t1 * 10 + o1, b: ri(r, 1, 4) * 10 + ri(r, 11 - o1, 9) };
+      }
+      /* And here it spills all the way into the hundreds: 458 + 48. */
+      const t1 = ri(r, 5, 9), o1 = ri(r, 1, 9);
+      return { a: h() + t1 * 10 + o1, b: ri(r, 10 - t1, 9) * 10 + ri(r, 1, 9) };
+    }
+  },
+  {
     id: 'add.s5', op: 'add', name: 'Three digits plus three', example: '324 + 324', levels: 3,
     uses: ['add.split', 'add.friendly'],
     gen(r, level) {
@@ -181,8 +203,30 @@ export const SUB_SHAPES = [
          that 71 - 68 should be counted up rather than taken apart is the point
          of having learned both. */
       return coin(r,
-        rr => { const b = ri(rr, 2, 7) * 10 + ri(rr, 1, 9); return { a: b + ri(rr, 3, 14), b }; },
+        /* Built so the gap really does cross a round ten, which is the whole
+           reason counting up beats taking apart here. Left to chance, half of
+           these come out as pairs that no method will touch. */
+        rr => { const bo = ri(rr, 5, 9), b = ri(rr, 2, 7) * 10 + bo;
+                return { a: b + (10 - bo) + ri(rr, 1, 9), b }; },
         rr => { const o1 = ri(rr, 1, 7); return { a: ri(rr, 4, 9) * 10 + o1, b: ri(rr, 1, 3) * 10 + ri(rr, o1 + 1, 9) }; });
+    }
+  },
+  {
+    id: 'sub.s6', op: 'sub', name: 'Three digits take two', example: '534 − 34', levels: 3,
+    uses: ['sub.split', 'sub.keep', 'sub.back', 'sub.shift'],
+    gen(r, level) {
+      const h = () => ri(r, 1, 8) * 100;
+      if (level <= 1) {                               // nothing borrows
+        const t2 = ri(r, 1, 4), o2 = ri(r, 1, 4);
+        return { a: h() + ri(r, t2 + 1, 9) * 10 + ri(r, o2 + 1, 9), b: t2 * 10 + o2 };
+      }
+      if (level === 2) {                              // the ones borrow
+        const o1 = ri(r, 1, 7), t2 = ri(r, 1, 3);
+        return { a: h() + ri(r, t2 + 1, 9) * 10 + o1, b: t2 * 10 + ri(r, o1 + 1, 9) };
+      }
+      /* And here it borrows all the way from the hundreds: 534 - 87. */
+      const o1 = ri(r, 1, 7), t1 = ri(r, 1, 4);
+      return { a: ri(r, 2, 8) * 100 + t1 * 10 + o1, b: ri(r, t1 + 1, 9) * 10 + ri(r, o1 + 1, 9) };
     }
   },
   {
@@ -200,8 +244,8 @@ export const SUB_SHAPES = [
                  b: ri(r, 1, 3) * 100 + ri(r, 1, t1 - 1) * 10 + ri(r, o1 + 1, 9) };
       }
       return coin(r,
-        rr => { const b = ri(rr, 2, 7) * 100 + ri(rr, 1, 9) * 10 + ri(rr, 1, 9);
-                return { a: b + ri(rr, 3, 16), b }; },
+        rr => { const bo = ri(rr, 5, 9), b = ri(rr, 2, 7) * 100 + ri(rr, 1, 9) * 10 + bo;
+                return { a: b + (10 - bo) + ri(rr, 1, 9), b }; },
         rr => { const o1 = ri(rr, 1, 7), t1 = ri(rr, 4, 9);
                 return { a: ri(rr, 4, 9) * 100 + t1 * 10 + o1,
                          b: ri(rr, 1, 3) * 100 + ri(rr, 1, t1 - 1) * 10 + ri(rr, o1 + 1, 9) }; });

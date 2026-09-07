@@ -224,6 +224,8 @@ function digitShape(sh, c) {
     case 'add.s2': return d(p.a) === 3 && d(p.b) === 1 ? pass : fail('should be three digits plus one');
     case 'add.s3': return p.b % 10 === 0 && p.a % 10 !== 0 ? pass : fail('should be adding whole tens');
     case 'add.s4': return d(p.a) === 2 && d(p.b) === 2 ? pass : fail('should be two digits plus two');
+    case 'add.s6': return d(p.a) === 3 && d(p.b) === 2 ? pass : fail('should be three digits plus two');
+    case 'sub.s6': return d(p.a) === 3 && d(p.b) === 2 ? pass : fail('should be three digits take two');
     case 'add.s5': return d(p.a) === 3 && d(p.b) === 3 ? pass : fail('should be three digits plus three');
     case 'sub.s1': return d(p.a) === 2 && d(p.b) === 1 ? pass : fail('should be two digits take one');
     case 'sub.s2': return d(p.a) === 3 && d(p.b) === 1 ? pass : fail('should be three digits take one');
