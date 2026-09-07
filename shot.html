@@ -19,8 +19,9 @@ if (want !== 'pick' && !document.querySelector('.gyms')) { $$('.choice').find(c=
 const { peek } = await import('./js/solve.js');
 async function tap(n){ for (const ch of String(n)) { $$('.key').find(b=>b.textContent===ch).click(); await sleep(10); } }
 if (want.startsWith('gym')) { $$('.gym')[+want.slice(3)].click(); await sleep(150); }
-if (want.startsWith('demo')) { $$('.gym')[+want.slice(4,5)].click(); await sleep(120); $$('.movecard')[+want.slice(5)].click(); await sleep(120);
-  for(let i=0;i<6;i++){const b=btn('Show me the first step')||btn('Then what?'); if(!b||b.disabled)break; b.click(); await sleep(30);} }
+if (want.startsWith('demo')) { $$('.gym')[+want.slice(4,5)].click(); await sleep(120); $$('.movecard')[+want.slice(5,6)].click(); await sleep(120);
+  const clicks = want.length > 6 ? +want.slice(6) : 9;
+  for(let i=0;i<clicks;i++){const b=btn('Show me the first step')||btn('Then what?'); if(!b||b.disabled)break; b.click(); await sleep(40);} }
 if (want.startsWith('solve')) { const g=+want.slice(5,6), m=+want.slice(6,7), st=+(want.slice(7)||0);
   $$('.gym')[g].click(); await sleep(120); $$('.movecard')[m].click(); await sleep(120); btn('I will try it').click(); await sleep(200);
   for(let i=0;i<st;i++){ await tap(peek().step.answer); await sleep(400); } }

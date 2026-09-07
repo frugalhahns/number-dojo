@@ -11,6 +11,7 @@ import { GYMS, BY_OP, BY_STRATEGY, makeForShape, fitting } from './strategies.js
 import { SHAPES_FOR } from './shapes.js';
 import * as Solve from './solve.js';
 import { render } from './board.js';
+import { bigSum } from './problem.js';
 
 const SESSIONS_FOR_BADGE = 6;
 
@@ -177,14 +178,23 @@ function rungSheet(sh, g) {
   const strat = BY_STRATEGY[demo.strategy];
   sheet(sh.example, body => {
     body.appendChild(el('p', 'idea', sh.name + '. ' + g.idea));
-    body.appendChild(el('div', 'bigsum', demo.title + ' = ?'));
+    /* The problem sits above the walkthrough and is redrawn on every click, so
+       the digits being changed light up as each step is revealed. Watching
+       somebody explain 185 + 4 is no use if you cannot see which number they
+       just did something to. */
+    const sumWrap = el('div', 'sumwrap');
+    body.appendChild(sumWrap);
     body.appendChild(el('div', 'stratline', 'One way to do this one: ' + strat.name + '. ' + strat.blurb));
     const svgWrap = el('div', 'boardwrap');
     body.appendChild(svgWrap);
     const work = el('div', 'work demo');
     body.appendChild(work);
     const paint = k => {
-      clear(work); clear(svgWrap);
+      clear(work); clear(svgWrap); clear(sumWrap);
+      /* Light the step just revealed, and nothing before the first click. */
+      const shown = k > 0 ? demo.steps[k - 1] : null;
+      sumWrap.appendChild(bigSum(demo, shown && shown.focus,
+        k >= demo.steps.length ? demo.answer : '?'));
       const svg = render(demo.board, k);
       if (svg) svgWrap.appendChild(svg);
       for (let i = 0; i < k; i++) {
@@ -198,10 +208,7 @@ function rungSheet(sh, g) {
         row.appendChild(q);
         work.appendChild(row);
       }
-      if (k >= demo.steps.length) {
-        work.appendChild(el('div', 'recap', demo.answerText));
-        work.appendChild(el('div', 'recap', demo.recap));
-      }
+      if (k >= demo.steps.length) work.appendChild(el('div', 'recap', demo.recap));
     };
     let k = 0;
     paint(0);
@@ -346,7 +353,7 @@ function helpSheet() {
   sheet('How this works', body => {
     body.appendChild(el('p', '', 'Nobody works out 564 + 70 in one go. You take it apart.'));
     const demo = makeForShape('add.s3', 2, 4242);
-    body.appendChild(el('div', 'bigsum', demo.title + ' = ' + demo.answer));
+    body.appendChild(bigSum(demo, null, demo.answer));
     const work = el('div', 'work demo');
     demo.steps.forEach((st, i) => {
       const row = el('div', 'wrow done');

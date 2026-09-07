@@ -91,7 +91,16 @@ export async function run() {
     /* the demo: every step, then in to try it */
     $$('.movecard')[g % $$('.movecard').length].click();
     await until(() => !$('#sheet').classList.contains('hidden'), 'the move sheet to open');
-    let clicks = 0;
+    ok($$('#sheet .bigsum .lit').length === 0, gymName + ' the walkthrough starts with nothing lit');
+    {
+      const first = btn('Show me the first step');
+      first.click();
+      await sleep(60);
+      const lit = $$('#sheet .bigsum .lit').map(e => e.textContent).join('+');
+      ok(lit.length > 0, gymName + ' the first step of the walkthrough lights something up');
+      note(gymName + ' walkthrough step 1 lights: ' + lit + '  of  ' + $('#sheet .bigsum').textContent);
+    }
+    let clicks = 1;
     while (clicks < 8) {
       const b = btn('Show me the first step') || btn('Then what?');
       if (!b || b.disabled) break;
@@ -99,6 +108,8 @@ export async function run() {
     }
     ok(clicks >= 2, gymName + ' demo walked ' + clicks + ' steps');
     ok(!!$('.stratline'), gymName + ' demo names the method it is using');
+    ok($$('#sheet .bigsum .lit').length > 0,
+       gymName + ' the walkthrough lights up the digits it is changing, not just the exercise');
     ok(!!$('.work.demo .wrow'), gymName + ' demo showed working out');
     btn('I will try it').click();
     await until(() => !!$('.wrow.live'), gymName + ' run to start');

@@ -17,6 +17,7 @@
 
 import { el, qs, clear, button, toast, sparkle, pips } from './ui.js';
 import { render } from './board.js';
+import { bigSum } from './problem.js';
 import { sfx } from './audio.js';
 import * as B from './buddy.js';
 import { S, save, addXp, noteResult, levelOf } from './state.js';
@@ -48,47 +49,6 @@ let dirty = false;             // did he miss anything at all this problem
 let soloMode = false;
 let buddyImg = null;
 let onDone = null;
-
-/* Which digits of a number a focus token points at, as a [start, end) slice of
-   its digit string. Anything that does not land on real digits comes back null
-   and the number is simply left alone, so a token can never blank out a number
-   or light up nothing at all. */
-function slice(text, token) {
-  const n = text.length;
-  const r = { all: [0, n], ones: [n - 1, n], tail: [n - 1, n], tens: [n - 2, n - 1],
-              hundreds: [n - 3, n - 2], head: [0, n - 1], head2: [0, n - 2], tail2: [n - 2, n] }[token];
-  if (!r) return null;
-  const a = Math.max(0, r[0]), b = Math.min(n, r[1]);
-  return b > a ? [a, b] : null;
-}
-
-/* One side of the problem, with the digits this step is working on lit up and
-   everything else pushed back. This is the thing that makes "19 wants to be 20"
-   land: he can see which 19. */
-function operand(text, token, dimRest) {
-  const wrap = el('span', 'operand');
-  const r = token ? slice(text, token) : null;
-  if (!r) {
-    wrap.appendChild(el('span', dimRest ? 'dimd' : '', text));
-    return wrap;
-  }
-  if (r[0] > 0) wrap.appendChild(el('span', 'dimd', text.slice(0, r[0])));
-  wrap.appendChild(el('span', 'lit', text.slice(r[0], r[1])));
-  if (r[1] < text.length) wrap.appendChild(el('span', 'dimd', text.slice(r[1])));
-  return wrap;
-}
-
-function bigSum(chain, focus) {
-  const wrap = el('div', 'bigsum');
-  if (!chain.oper) { wrap.textContent = chain.title + ' = ?'; return wrap; }
-  const any = !!(focus && (focus.a || focus.b));
-  wrap.appendChild(operand(chain.lhs, any ? focus.a : null, any));
-  wrap.appendChild(el('span', 'oper', chain.oper));
-  wrap.appendChild(operand(chain.rhs, any ? focus.b : null, any));
-  wrap.appendChild(el('span', 'oper', '='));
-  wrap.appendChild(el('span', 'qmark', '?'));
-  return wrap;
-}
 
 function buddyForm() {
   const id = S.buddy || 'chikorita';

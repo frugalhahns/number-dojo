@@ -24,9 +24,11 @@ const threeDigit = r => ri(r, 1, 8) * 100 + ri(r, 0, 9) * 10;
 
 /* ==================================================================== ADD == */
 
+/* Never plus one. It is a legal problem and a worthless one: he has nothing to
+   take apart and the walkthrough reads as a joke. */
 const addOnes = (r, base) => {                 // ones stay under a ten: 45 + 3
   const o = ri(r, 1, 8);
-  return { a: base(r) + o, b: ri(r, 1, 10 - o) };
+  return { a: base(r) + o, b: ri(r, 2, 10 - o) };
 };
 const addBridge = (r, base) => {               // the ones cross a ten: 45 + 8
   const o = ri(r, 2, 9);
@@ -105,8 +107,8 @@ export const ADD_SHAPES = [
 /* ==================================================================== SUB == */
 
 const subOnes = (r, base) => {                 // the ones are big enough: 45 - 3
-  const o = ri(r, 2, 9);
-  return { a: base(r) + o, b: ri(r, 1, o) };
+  const o = ri(r, 3, 9);
+  return { a: base(r) + o, b: ri(r, 2, o) };
 };
 const subBorrow = (r, base) => {               // they are not: 45 - 8
   const o = ri(r, 1, 7);

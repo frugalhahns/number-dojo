@@ -89,8 +89,13 @@ that matters fixed. They are the ones worth watching him get.
   digits it is touching, and the problem at the top of the screen lights exactly
   those and pushes the rest back. On `22 − 19`, the step that says "19 wants to
   be 20" lights the **19**; on `42 + 47`, the tens step lights both **4**s and
-  the ones step lights the **2** and the **7**. It is the difference between
-  following an explanation and hunting for what it refers to.
+  the ones step lights the **2** and the **7**; on `185 + 4`, "add just the ones"
+  lights the **5** and the **4** and then "drop it back on" lights the **18**.
+  It is the difference between following an explanation and hunting for what it
+  refers to. The same lighting runs in the **watch one first** walkthrough, one
+  step per click, because seeing a method explained is no use if you cannot see
+  which number it just did something to. Both screens draw it with the same
+  `js/problem.js`, so they cannot drift apart.
 - **A miss costs nothing.** First miss gets a hint that does not contain the
   answer, which `selftest.js` checks by regex on every hint of every generated
   problem. Second miss gives the answer and the reason, and he still has to type
@@ -138,7 +143,7 @@ a headless run can wait for the answer instead of guessing.
 | Page | What it holds down |
 |---|---|
 | `selftest.html` | Content. ~1,700,000 checks. Builds every strategy at every level 500 times over and proves each chain lands on the right answer, that no step goes negative or fractional, that every line has exactly one blank, that no hint contains its own answer, that nested chains answer the question their parent asked, that boards render at every point without throwing and never draw off their own axis, that each level can make at least 14 different problems, that every rung of the ladder always finds a strategy willing to explain its numbers and rarely has to redraw to do it, that every rung really serves the digit counts its name promises, that every step lights up part of the problem and that the part it names actually exists in those digits, that every sprite file exists, that the `localStorage` key in `index.html` has not drifted from `js/state.js`, and that nothing anywhere uses an em dash. |
-| `flowtest.html` | Playability. Fetches `index.html`, injects its real body, and then clicks the real buttons: picks a starter, plays a five problem run in all four gyms through the on-screen keypad, gets one wrong twice on purpose and checks the first miss withholds the answer and the second gives it, opens a nested chain and checks it comes back out into the step it left, checks the highlight is on screen and moves as the steps go by, wins one in its head, opens all three sheets, and reads the save back out of `localStorage`. |
+| `flowtest.html` | Playability. Fetches `index.html`, injects its real body, and then clicks the real buttons: picks a starter, plays a five problem run in all four gyms through the on-screen keypad, gets one wrong twice on purpose and checks the first miss withholds the answer and the second gives it, opens a nested chain and checks it comes back out into the step it left, checks the highlight starts off, comes on at the first click of the walkthrough, and moves across the problem as the steps go by, wins one in its head, opens all three sheets, and reads the save back out of `localStorage`. |
 | `widthtest.html` | Layout. Loads five screens at ten viewport widths from 320px up in iframes, and fails if anything sticks out sideways or if any button is under 34px tall. Iframes rather than a resized window because **headless Chrome will not make a window narrower than 500 CSS pixels**, so a `--window-size=360` screenshot is a crop of a 500 wide layout and proves nothing. |
 
 Run them headless from the repository root:
@@ -190,6 +195,7 @@ js/
   strategies.js     the gyms, the registry, and the shape-to-strategy join
   solve.js          the solve loop: one live blank, misses, nesting, in-my-head
   screens.js        home, the ladder, the demo sheet, rewards, team, grown-ups
+  problem.js        the problem itself, with the digits in play lit up
   board.js          the pictures: number line, base ten blocks, area, groups
   buddy.js          sprites and the one sentence the buddy says
   ui.js             DOM helpers, sheets, sparkles, confetti

@@ -179,6 +179,7 @@ html[data-theme="light"] .gym.g-rock .gsign { color: #7a4b17; }
 .bigsum .operand { white-space: nowrap; }
 .bigsum .oper { margin: 0 .28em; color: var(--ink-dim); }
 .bigsum .qmark { color: var(--key); }
+.bigsum .answer { color: var(--key); }
 .bigsum .dimd { opacity: .38; transition: opacity .25s ease; }
 .bigsum .lit {
   color: var(--key);
@@ -197,6 +198,7 @@ html[data-theme="light"] .gym.g-rock .gsign { color: #7a4b17; }
 }
 .crumb { color: var(--ink-dim); font-size: .85rem; }
 .stratline { color: var(--ink-dim); font-size: .9rem; max-width: 620px; margin: 2px auto 0; }
+.sumwrap { min-height: 3.4rem; display: grid; place-items: center; }
 .recap {
   font-family: ui-monospace, "SFMono-Regular", Menlo, monospace;
   text-align: center; color: var(--ink-dim); font-size: 1rem; padding: 2px 0;
