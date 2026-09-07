@@ -8,7 +8,7 @@ import * as B from './buddy.js';
 import { S, save, load, reset, XP_FOR, levelOf, setSlot, activeSlot } from './state.js';
 import { LINES, BY_ID, STARTERS, EVOLVE_AT, form, stageForLevel } from './roster.js';
 import { GYMS, BY_OP, BY_STRATEGY, makeForShape, fitting } from './strategies.js';
-import { SHAPES_FOR } from './shapes.js';
+import { SHAPES_FOR, levelWord } from './shapes.js';
 import * as Theme from './theme.js';
 import * as Solve from './solve.js';
 import { render } from './board.js';
@@ -178,7 +178,8 @@ export function gym(op) {
     card.appendChild(el('div', 'mblurb', sh.name));
     const live = makeForShape(sh.id, lv, 4242 + i * 977);
     const n = S.done[sh.id] || 0;
-    card.appendChild(el('div', 'mdone', (n ? n + ' done' : 'new') + '  ·  like ' + live.title));
+    card.appendChild(el('div', 'mdone',
+      levelWord(sh, lv) + '  ·  like ' + live.title + '  ·  ' + (n ? n + ' done' : 'new')));
 
     card.addEventListener('click', () => rungSheet(sh, g));
     list.appendChild(card);
@@ -231,6 +232,28 @@ function rungSheet(sh, g) {
     body.appendChild(sumWrap);
     const strapline = el('div', 'stratline');
     body.appendChild(strapline);
+
+    /* Pick the difficulty outright. It moves up on its own after three clean
+       problems, but a child who is already comfortable should not have to grind
+       through the gentle version to reach the one he needs: level one carries
+       nothing at all, by design, and that is the wrong practice for him. */
+    const lvRow = el('div', 'extras lvrow');
+    body.appendChild(lvRow);
+    const paintLv = () => {
+      clear(lvRow);
+      lvRow.appendChild(el('span', 'dim', 'How hard?'));
+      for (let n = 1; n <= sh.levels; n++) {
+        lvRow.appendChild(button(levelWord(sh, n),
+          'btn small' + (levelOf(sh.id) === n ? ' primary' : ' ghost'), () => {
+            if (levelOf(sh.id) === n) return;
+            S.lv[sh.id] = n;
+            S.run[sh.id] = 0;              // a fresh run of clean answers at the new level
+            save();
+            demo = freshDemo(); rows = rowsOf(demo); k = 0;
+            sfx.tap(); paint();
+          }));
+      }
+    };
     const svgWrap = el('div', 'boardwrap');
     body.appendChild(svgWrap);
     const work = el('div', 'work demo');
@@ -293,6 +316,7 @@ function rungSheet(sh, g) {
         work.appendChild(r);
       }
       if (k >= rows.length) work.appendChild(el('div', 'recap', demo.recap));
+      paintLv();
       buttons();
       const fresh = work.querySelector('.wrow.just');
       if (fresh && k > 1) fresh.scrollIntoView({ block: 'nearest' });

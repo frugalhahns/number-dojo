@@ -42,11 +42,12 @@ rung gets harder as you go down the list.
 | 5 | `534 + 34` three digits plus two | `534 − 34` three digits take two | | |
 | 6 | `324 + 324` three digits plus three | `524 − 318` three digits take three | | |
 
-The three levels inside a rung are the thing he never has to think about. "Two
-digits plus two" starts without carrying, then carries, then mixes. "Two digits
-take two" starts without borrowing, then borrows, then throws in the occasional
-close pair like `71 − 68` so that noticing *which* method to reach for becomes
-its own skill.
+The three levels inside a rung are named rather than numbered. "Two digits plus
+two" starts without carrying (`53 + 35`), then carries (`57 + 39`), then mixes
+and grows. "Two digits take two" starts without borrowing, then borrows, then
+throws in the occasional close pair like `71 − 68` so that noticing *which*
+method to reach for becomes its own skill. They are his to pick from the rung,
+and they also rise on their own.
 
 ## The twenty-five methods
 
@@ -106,9 +107,15 @@ that matters fixed. They are the ones worth watching him get.
 - **The picture fills in as he works.** Every board part carries the index of
   the step that reveals it, so the number line or the rectangle is a record of
   his own thinking rather than a diagram he was handed.
-- **Difficulty only ever goes up.** Three problems in a row with no misses moves
-  a move up a level, and nothing moves it back down. A bad five minutes cannot
-  undo a good week.
+- **He can pick the difficulty outright.** Every rung shows its three levels in
+  words, not numbers: *nothing carries*, *the ones carry*, *a mix and bigger*.
+  It still moves up on its own after three clean problems, but a child already
+  past the gentle version should not have to grind through it to reach the one
+  he needs. Level one carries nothing at all, by design, which is exactly the
+  wrong practice for somebody who came to practise carrying.
+- **Difficulty only ever goes up on its own.** Three problems in a row with no
+  misses moves a rung up a level, and nothing moves it back down. A bad five
+  minutes cannot undo a good week.
 - **One number sentence at a time.** A walkthrough is titled by the rung's name,
   never by the rung's canonical example: the card he tapped says `324 + 324`, but
   the problem being worked is a different one, and two unrelated sums on screen

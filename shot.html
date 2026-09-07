@@ -10,6 +10,9 @@ St.setSlot('3'); localStorage.removeItem('nd.save.v1.s3'); St.load();
 const S = St.S;
 if (P.get('seed')) { S.buddy='pikachu'; S.team=['pikachu','chikorita','wooper','magikarp','marill']; S.level=6; S.xp=14; S.badges=['add']; S.sessions={add:3,mul:1}; S.shownStage=1; S.lv={'add.scale':2,'mul.distribute':2}; S.steps=214; S.best=19; St.save(); }
 if (P.get('theme')) { S.theme = P.get('theme'); St.save(); }
+// ?lv=2 puts every rung on that difficulty, for screenshots and the width sweep
+if (P.get('lv')) { const {SHAPES} = await import('./js/shapes.js');
+                   for (const sh of SHAPES) S.lv[sh.id] = +P.get('lv'); St.save(); }
 await import('./js/main.js');
 const sleep = ms => new Promise(r=>setTimeout(r,ms));
 const $$ = s => Array.from(document.querySelectorAll(s));

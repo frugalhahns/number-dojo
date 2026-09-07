@@ -81,8 +81,11 @@ export const ADD_SHAPES = [
     uses: ['add.split', 'add.friendly', 'add.near'],
     gen(r, level) {
       if (level <= 1) {                               // no carry anywhere
-        const o1 = ri(r, 1, 4), o2 = ri(r, 1, 9 - o1);
-        return { a: ri(r, 1, 4) * 10 + o1, b: ri(r, 1, 4) * 10 + o2 };
+        /* Full sized tens. Capping them at four made the easy level tiny as
+           well as easy, which are two different things: "34 + 13" is not a
+           gentler version of "53 + 35", it is a smaller one. */
+        const o1 = ri(r, 1, 4), o2 = ri(r, 1, 9 - o1), t1 = ri(r, 1, 8);
+        return { a: t1 * 10 + o1, b: ri(r, 1, 9 - t1) * 10 + o2 };
       }
       if (level === 2) {                              // the ones carry
         const o1 = ri(r, 4, 9), o2 = ri(r, 11 - o1, 9);
@@ -103,8 +106,8 @@ export const ADD_SHAPES = [
     gen(r, level) {
       const h = () => ri(r, 1, 8) * 100;
       if (level <= 1) {                               // nothing carries
-        const t1 = ri(r, 1, 4), o1 = ri(r, 1, 4);
-        return { a: h() + t1 * 10 + o1, b: ri(r, 1, 8 - t1) * 10 + ri(r, 1, 9 - o1) };
+        const t1 = ri(r, 1, 8), o1 = ri(r, 1, 4);
+        return { a: h() + t1 * 10 + o1, b: ri(r, 1, 9 - t1) * 10 + ri(r, 1, 9 - o1) };
       }
       if (level === 2) {                              // the ones carry
         const o1 = ri(r, 4, 9), t1 = ri(r, 1, 3);
@@ -120,9 +123,9 @@ export const ADD_SHAPES = [
     uses: ['add.split', 'add.friendly'],
     gen(r, level) {
       if (level <= 1) {                               // no carry anywhere
-        const o1 = ri(r, 1, 4), t1 = ri(r, 1, 4);
-        return { a: ri(r, 1, 4) * 100 + t1 * 10 + o1,
-                 b: ri(r, 1, 4) * 100 + ri(r, 1, 9 - t1) * 10 + ri(r, 1, 9 - o1) };
+        const o1 = ri(r, 1, 4), t1 = ri(r, 1, 8), h1 = ri(r, 1, 8);
+        return { a: h1 * 100 + t1 * 10 + o1,
+                 b: ri(r, 1, 9 - h1) * 100 + ri(r, 1, 9 - t1) * 10 + ri(r, 1, 9 - o1) };
       }
       if (level === 2) {                              // the ones carry, the tens do not
         const o1 = ri(r, 4, 9), t1 = ri(r, 1, 4);
@@ -191,9 +194,10 @@ export const SUB_SHAPES = [
     gen(r, level) {
       if (level <= 1) {                               // no borrowing
         /* Strictly smaller in each column, not merely no bigger: "6 - 6 = 0" is
-           a step that asks nothing and reads like a mistake. */
-        const o1 = ri(r, 3, 9);
-        return { a: ri(r, 4, 9) * 10 + o1, b: ri(r, 1, 3) * 10 + ri(r, 1, o1 - 1) };
+           a step that asks nothing and reads like a mistake. Full sized tens on
+           both sides, so the easy level is easy rather than merely small. */
+        const o1 = ri(r, 3, 9), t1 = ri(r, 3, 9);
+        return { a: t1 * 10 + o1, b: ri(r, 1, t1 - 1) * 10 + ri(r, 1, o1 - 1) };
       }
       if (level === 2) {                              // borrowing
         const o1 = ri(r, 1, 7);
@@ -217,7 +221,7 @@ export const SUB_SHAPES = [
     gen(r, level) {
       const h = () => ri(r, 1, 8) * 100;
       if (level <= 1) {                               // nothing borrows
-        const t2 = ri(r, 1, 4), o2 = ri(r, 1, 4);
+        const t2 = ri(r, 1, 8), o2 = ri(r, 1, 8);
         return { a: h() + ri(r, t2 + 1, 9) * 10 + ri(r, o2 + 1, 9), b: t2 * 10 + o2 };
       }
       if (level === 2) {                              // the ones borrow
@@ -234,9 +238,9 @@ export const SUB_SHAPES = [
     uses: ['sub.split', 'sub.back', 'sub.shift', 'sub.countup'],
     gen(r, level) {
       if (level <= 1) {                               // no borrowing
-        const o1 = ri(r, 3, 9), t1 = ri(r, 3, 9);
-        return { a: ri(r, 4, 9) * 100 + t1 * 10 + o1,
-                 b: ri(r, 1, 3) * 100 + ri(r, 1, t1 - 1) * 10 + ri(r, 1, o1 - 1) };
+        const o1 = ri(r, 3, 9), t1 = ri(r, 3, 9), h1 = ri(r, 2, 9);
+        return { a: h1 * 100 + t1 * 10 + o1,
+                 b: ri(r, 1, h1 - 1) * 100 + ri(r, 1, t1 - 1) * 10 + ri(r, 1, o1 - 1) };
       }
       if (level === 2) {                              // the ones borrow
         const o1 = ri(r, 1, 7), t1 = ri(r, 4, 9);
@@ -334,6 +338,21 @@ export const DIV_SHAPES = [
     }
   }
 ];
+
+/* What the three levels inside a rung actually change. Said out loud so the
+   chooser reads as a description rather than three numbers, and so a grown-up
+   can see at a glance what level two is going to serve. */
+const LEVEL_WORDS = {
+  add: ['Nothing carries', 'The ones carry', 'A mix, and bigger'],
+  sub: ['Nothing borrows', 'The ones borrow', 'A mix, and bigger'],
+  mul: ['Smaller numbers', 'Harder facts', 'Bigger numbers'],
+  div: ['Smaller numbers', 'Harder facts', 'Bigger numbers']
+};
+
+export function levelWord(shape, n) {
+  if (/\.s3$/.test(shape.id)) return ['Small jumps', 'The tens cross over', 'Whole hundreds'][n - 1];
+  return (LEVEL_WORDS[shape.op] || LEVEL_WORDS.add)[n - 1] || 'Level ' + n;
+}
 
 export const SHAPES = [].concat(ADD_SHAPES, SUB_SHAPES, MUL_SHAPES, DIV_SHAPES);
 

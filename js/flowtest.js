@@ -92,6 +92,26 @@ export async function run() {
     $$('.movecard')[g % $$('.movecard').length].click();
     await until(() => !$('#sheet').classList.contains('hidden'), 'the move sheet to open');
     ok($$('#sheet .bigsum .lit').length === 0, gymName + ' the walkthrough starts with nothing lit');
+    /* The difficulty is his to pick. Level one carries nothing by design, and a
+       child already past that should not have to grind to reach the rest. */
+    {
+      const picks = $$('#sheet .lvrow .btn');
+      ok(picks.length >= 2, gymName + ' the rung offers a difficulty to pick, saw ' + picks.length);
+      const before = $('#sheet .bigsum').textContent;
+      const last = picks[picks.length - 1];
+      const wasPrimary = last.classList.contains('primary');
+      last.click();
+      await sleep(90);
+      const nowPicks = $$('#sheet .lvrow .btn');
+      ok(nowPicks[nowPicks.length - 1].classList.contains('primary'),
+         gymName + ' picking the hardest level marks it as chosen');
+      if (!wasPrimary) {
+        ok($('#sheet .bigsum').textContent !== before,
+           gymName + ' and re-rolls the example at that level (' + before + ' then ' + $('#sheet .bigsum').textContent + ')');
+      }
+      picks[0].click();                       // back to the gentle one for the rest of the run
+      await sleep(90);
+    }
     /* Only one number sentence in here, and it is the one being worked. A
        second sum in the title corner is a reading puzzle. */
     ok(!/\d+\s*[+\u2212\u00d7\u00f7-]\s*\d+/.test($('#sheet .sheet-title').textContent),
