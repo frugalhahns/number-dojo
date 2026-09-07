@@ -49,6 +49,7 @@ body[data-hue="water"]    { --key: #6ec6ff; --key-ink: #052033; }
 body[data-hue="electric"] { --key: #ffd45e; --key-ink: #2b2000; }
 body[data-hue="rock"]     { --key: #d9b382; --key-ink: #2a1c08; }
 body[data-hue="home"]     { --key: #b39cff; --key-ink: #16093a; }
+html[data-theme="light"] .bigsum .lit { background: color-mix(in srgb, var(--key) 15%, #fff); }
 html[data-theme="light"] body[data-hue="grass"]    { --key: #12734a; --key-ink: #fff; }
 html[data-theme="light"] body[data-hue="water"]    { --key: #14567f; --key-ink: #fff; }
 html[data-theme="light"] body[data-hue="electric"] { --key: #7a5200; --key-ink: #fff; }
@@ -70,12 +71,15 @@ button { font: inherit; color: inherit; }
 
 /* --------------------------------------------------------------- top bar --- */
 #topbar {
-  width: 100%; max-width: 880px; display: flex; align-items: center; gap: 12px;
+  /* Wraps rather than overflows. On a 320px phone the buddy and the XP bar keep
+     the first line and the chips drop to a second, which is better than any of
+     them being unreachable off the right edge. */
+  width: 100%; max-width: 880px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
   background: var(--card); border: 1px solid var(--line); border-radius: var(--radius);
   padding: 8px 12px; margin-bottom: 12px; box-shadow: var(--shadow);
 }
 #topbar .sprite.small { height: 46px; width: auto; cursor: pointer; }
-.tinfo { flex: 1; min-width: 90px; }
+.tinfo { flex: 1 1 90px; min-width: 90px; }
 .trow { display: flex; align-items: baseline; gap: 8px; }
 .trow b { font-size: 1.02rem; }
 .lvl { color: var(--key); font-weight: 700; font-size: .86rem; }
@@ -166,6 +170,7 @@ html[data-theme="light"] .gym.g-rock .gsign { color: #7a4b17; }
 }
 .chip.move { color: var(--key); border-color: var(--key); cursor: default; }
 .chip.ghost:hover { border-color: var(--key); }
+.chip.theme { font-size: 1.05rem; padding: 8px 11px; line-height: 1; }
 .problem { text-align: center; }
 .bigsum {
   font-size: clamp(2.1rem, 9vw, 3.4rem); font-weight: 800; letter-spacing: -.02em;
@@ -183,16 +188,22 @@ html[data-theme="light"] .gym.g-rock .gsign { color: #7a4b17; }
 .bigsum .dimd { opacity: .38; transition: opacity .25s ease; }
 .bigsum .lit {
   color: var(--key);
-  background: color-mix(in srgb, var(--key) 18%, transparent);
-  box-shadow: 0 3px 0 0 var(--key);
+  background: color-mix(in srgb, var(--key) 20%, transparent);
+  /* Inset, so the underline costs no layout and cannot nudge the baseline of
+     the digits either side of it. */
+  box-shadow: inset 0 -3px 0 0 var(--key);
   border-radius: 8px;
   padding: 0 .1em;
   margin: 0 -.02em;
   animation: pickup .38s ease;
   display: inline-block;
 }
+/* The animation moves the digits and nothing else. It used to clear the
+   background and the underline on its first frame, which meant the highlight
+   did not exist until the animation had finished: invisible in a paused tab, in
+   a headless render, and for the fraction of a second that matters most. */
 @keyframes pickup {
-  0%   { transform: translateY(0)    scale(1);    background: transparent; box-shadow: 0 3px 0 0 transparent; }
+  0%   { transform: translateY(0)    scale(1); }
   45%  { transform: translateY(-6px) scale(1.14); }
   100% { transform: translateY(0)    scale(1); }
 }
@@ -243,6 +254,17 @@ svg.board .grp.dim { opacity: .3; }
 .wrow.done { opacity: .8; }
 .wrow.live { border-color: var(--key); border-width: 2px; align-items: flex-start; background: var(--card2); }
 .wrow.told { box-shadow: inset 0 0 0 2px var(--gold); }
+/* The step just uncovered in a walkthrough. Same treatment as the live blank on
+   the solve screen, so "the one you are on" looks the same whether he is
+   watching it done or doing it. Marked by border and colour rather than by
+   dimming its neighbours, because fading text he still has to read back is a
+   poor trade. */
+.wrow.just { border-color: var(--key); border-width: 2px; background: var(--card2); opacity: 1; animation: uncover .32s ease; }
+.wrow.just .wn { background: var(--key); color: var(--key-ink); border-color: var(--key); }
+@keyframes uncover {
+  from { opacity: 0; transform: translateY(-7px); }
+  to   { opacity: 1; transform: none; }
+}
 .wrow.pop { animation: pop .26s ease; }
 @keyframes pop { 50% { transform: scale(1.025); } }
 .wn {

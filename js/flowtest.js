@@ -99,8 +99,20 @@ export async function run() {
       const lit = $$('#sheet .bigsum .lit').map(e => e.textContent).join('+');
       ok(lit.length > 0, gymName + ' the first step of the walkthrough lights something up');
       note(gymName + ' walkthrough step 1 lights: ' + lit + '  of  ' + $('#sheet .bigsum').textContent);
+      /* The step he just uncovered has to be marked, and only that one. */
+      ok($$('#sheet .wrow.just').length === 1, gymName + ' exactly one step is marked as the one he is on');
+      ok($$('#sheet .wrow')[0].classList.contains('just'), gymName + ' step 1 is the marked one');
+      if (btn('Then what?')) {
+        btn('Then what?').click();
+        await sleep(60);
+        const rows = $$('#sheet .wrow');
+        ok($$('#sheet .wrow.just').length === 1, gymName + ' still exactly one marked step after the second click');
+        ok(rows[rows.length - 1].classList.contains('just'),
+           gymName + ' the mark moved to step ' + rows.length + ' when he pressed then what');
+        ok(!rows[0].classList.contains('just'), gymName + ' and came off the step before it');
+      }
     }
-    let clicks = 1;
+    let clicks = 2;
     while (clicks < 8) {
       const b = btn('Show me the first step') || btn('Then what?');
       if (!b || b.disabled) break;
@@ -264,6 +276,30 @@ export async function run() {
     await until(() => !!$('.bigsum.win'), 'the solo answer to be accepted');
     ok((S.solo.add || 0) === soloBefore + 1, 'the in-my-head win was counted');
     ok(totalXp() > xpBefore + 5, 'it paid more than a stepped-through problem');
+  }
+
+  /* -------------------------------------------------------- the theme ----- */
+  {
+    const chip = $('.chip.theme');
+    ok(!!chip, 'there is a theme button in the top bar');
+    const seen = [];
+    /* Three taps must walk all three settings and come back, and each one has
+       to actually change the attribute the whole stylesheet hangs off. */
+    for (let i = 0; i < 4; i++) {
+      seen.push((S.theme || 'auto') + ':' + document.documentElement.dataset.theme);
+      chip.click();
+      await sleep(40);
+    }
+    ok(new Set(seen.map(x => x.split(':')[0])).size === 3,
+       'tapping the theme button walks auto, light and dark, saw ' + JSON.stringify(seen));
+    ok(seen[0] === seen[3], 'and comes back round to where it started');
+    const lightAt = seen.find(x => x.startsWith('light:'));
+    const darkAt = seen.find(x => x.startsWith('dark:'));
+    ok(lightAt === 'light:light', 'the light setting really puts the page in light mode (' + lightAt + ')');
+    ok(darkAt === 'dark:dark', 'the dark setting really puts the page in dark mode (' + darkAt + ')');
+    S.theme = 'dark'; save();
+    document.documentElement.dataset.theme = 'dark';
+    note('theme walk: ' + seen.join('  '));
   }
 
   /* ------------------------------------------------------- the sheets ----- */

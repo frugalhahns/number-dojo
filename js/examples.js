@@ -15,6 +15,8 @@ import { bigSum } from './problem.js';
 import { makeForShape, BY_STRATEGY } from './strategies.js';
 import { GYMS } from './strategies.js';
 import { SHAPES_FOR } from './shapes.js';
+import * as Theme from './theme.js';
+import { S, load, save } from './state.js';
 
 let op = 'add';
 let perRung = 3;
@@ -71,6 +73,12 @@ function draw() {
   bar.appendChild(el('span', 'exgap', ''));
   bar.appendChild(button('New batch', 'btn ghost', draw));
   bar.appendChild(button('Print', 'btn ghost', () => window.print()));
+  bar.appendChild(button(Theme.ICON[S.theme || 'auto'] + '  ' + Theme.LABEL[S.theme || 'auto'], 'btn ghost', () => {
+    S.theme = Theme.next(S.theme || 'auto');
+    Theme.apply(S.theme);
+    save();
+    draw();
+  }));
   main.appendChild(bar);
 
   main.appendChild(el('h1', 'title small', gym.what + ': worked examples'));
@@ -93,6 +101,14 @@ function draw() {
   }
   document.documentElement.dataset.done = '1';
 }
+
+load();
+/* widthtest.html drives this page in both themes, and a grown-up may want to
+   force one for printing without changing the child's setting. */
+const forced = new URLSearchParams(location.search).get('theme');
+if (forced === 'light' || forced === 'dark') S.theme = forced;
+Theme.apply(S.theme || 'auto');
+Theme.watch(() => S.theme || 'auto');
 
 /* Deep links, so a rung can be handed over as a URL and so widthtest.html can
    load a known page rather than whatever was last clicked. */

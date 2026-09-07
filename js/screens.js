@@ -2,13 +2,14 @@
    Home is four doors. A gym is a move list. The reward screen is the only place
    an animal is ever caught, so it is the only reason to finish a run. */
 
-import { el, qs, clear, button, sheet, closeSheet, sparkle, confetti, bar, pips } from './ui.js';
+import { el, qs, clear, button, sheet, closeSheet, sparkle, confetti, bar, pips, toast } from './ui.js';
 import { sfx } from './audio.js';
 import * as B from './buddy.js';
 import { S, save, load, reset, XP_FOR, levelOf, setSlot, activeSlot } from './state.js';
 import { LINES, BY_ID, STARTERS, EVOLVE_AT, form, stageForLevel } from './roster.js';
 import { GYMS, BY_OP, BY_STRATEGY, makeForShape, fitting } from './strategies.js';
 import { SHAPES_FOR } from './shapes.js';
+import * as Theme from './theme.js';
 import * as Solve from './solve.js';
 import { render } from './board.js';
 import { bigSum } from './problem.js';
@@ -40,10 +41,34 @@ export function topbar() {
   }
   t.appendChild(badges);
   t.appendChild(button('Team', 'chip ghost', teamSheet));
+  t.appendChild(themeChip());
   t.appendChild(button('?', 'chip ghost', helpSheet));
 }
 
 function buddyForm() { return form(S.buddy, stageForLevel(S.buddy, S.level)); }
+
+/* One tap moves to the next of auto, light, dark. The icon is the setting it is
+   on, not the one it would move to, because a button that shows you where you
+   would go rather than where you are is a riddle. */
+export function themeChip() {
+  const b = button(Theme.ICON[S.theme] || Theme.ICON.auto, 'chip ghost theme', () => {
+    S.theme = Theme.next(S.theme || 'auto');
+    Theme.apply(S.theme);
+    save();
+    b.textContent = Theme.ICON[S.theme];
+    b.title = label();
+    sfx.tap();
+    toast(label());
+  });
+  b.title = label();
+  b.setAttribute('aria-label', 'Colour theme');
+  return b;
+  function label() {
+    const p = S.theme || 'auto';
+    return p === 'auto' ? 'Theme: Auto (following this device, currently ' + Theme.resolved(p) + ')'
+                        : 'Theme: ' + Theme.LABEL[p];
+  }
+}
 
 /* ------------------------------------------------------------------ home --- */
 
@@ -220,7 +245,10 @@ function rungSheet(sh, g) {
       if (svg) svgWrap.appendChild(svg);
       for (let i = 0; i < k; i++) {
         const st = demo.steps[i];
-        const r = el('div', 'wrow done');
+        /* The step just uncovered is marked. Without it every revealed step
+           looks the same and pressing "then what" adds a line to a list rather
+           than moving his attention to a place. */
+        const r = el('div', 'wrow done' + (i === k - 1 ? ' just' : ''));
         r.appendChild(el('span', 'wn', i + 1));
         const q = el('div', 'wq');
         q.appendChild(el('div', 'prompt', st.prompt));
@@ -231,6 +259,10 @@ function rungSheet(sh, g) {
       }
       if (k >= demo.steps.length) work.appendChild(el('div', 'recap', demo.recap));
       buttons();
+      /* Long walkthroughs push the new step below the fold of the sheet, and a
+         highlight he has to scroll to find is not a highlight. */
+      const fresh = work.querySelector('.wrow.just');
+      if (fresh && k > 1) fresh.scrollIntoView({ block: 'nearest' });
     };
 
     const buttons = () => {
@@ -431,8 +463,21 @@ function grownupSheet() {
       }
     }
     body.appendChild(t);
-    const row = el('div', 'extras');
+    let row = el('div', 'extras');
     row.appendChild(button('Worked examples (printable)', 'btn primary', () => { location.href = 'examples.html?op=add'; }));
+    body.appendChild(row);
+
+    const themeRow = el('div', 'extras');
+    themeRow.appendChild(el('span', 'dim', 'Theme'));
+    for (const pref of Theme.THEMES) {
+      themeRow.appendChild(button(Theme.ICON[pref] + '  ' + Theme.LABEL[pref],
+        'btn' + ((S.theme || 'auto') === pref ? ' primary' : ' ghost'), () => {
+          S.theme = pref; Theme.apply(pref); save(); closeSheet(); topbar(); grownupSheet();
+        }));
+    }
+    body.appendChild(themeRow);
+
+    row = el('div', 'extras');
     row.appendChild(button('Sound: ' + (S.sound ? 'on' : 'off'), 'btn ghost', e => {
       S.sound = !S.sound; save();
       import('./audio.js').then(m => m.setSound(S.sound));
@@ -455,7 +500,10 @@ function slotSheet() {
       c.type = 'button';
       c.appendChild(el('div', 'gsign', n));
       c.appendChild(el('div', 'gname', 'Player ' + n));
-      c.addEventListener('click', () => { setSlot(n); load(); closeSheet(); topbar(); home(); });
+      c.addEventListener('click', () => {
+        setSlot(n); load(); Theme.apply(S.theme || 'auto');
+        closeSheet(); topbar(); home();
+      });
       row.appendChild(c);
     });
     body.appendChild(row);

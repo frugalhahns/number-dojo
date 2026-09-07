@@ -13,7 +13,7 @@
 </head>
 <body>
 <h1>Number Dojo width test</h1>
-<p>Nothing may stick out sideways at any width a phone, a tablet or a school Chromebook can be. An iframe is used rather than a resized window because headless Chrome refuses to make a window narrower than 500 CSS pixels, so a screenshot at 360 is a crop of a 500 wide layout and proves nothing.</p>
+<p>Nothing may stick out sideways at any width a phone, a tablet or a school Chromebook can be, no button may be too small to hit, and the highlight has to be visible. Widths alternate light and dark theme so a regression in one cannot hide behind the other. An iframe is used rather than a resized window because headless Chrome refuses to make a window narrower than 500 CSS pixels, so a screenshot at 360 is a crop of a 500 wide layout and proves nothing.</p>
 <pre id="out">running...</pre>
 <div id="frames"></div>
 <script type="module">
@@ -29,9 +29,11 @@
 
   for (const at of SCREENS.concat(PAGES)) {
     for (const w of WIDTHS) {
+      const theme = (WIDTHS.indexOf(w) % 2) ? 'light' : 'dark';
       const f = document.createElement('iframe');
       f.style.cssText = 'width:' + w + 'px;height:1500px;border:0';
-      f.src = at.indexOf('.html') >= 0 ? at + '&w=' + w : 'shot.html?at=' + at + '&seed=1&w=' + w;
+      f.src = at.indexOf('.html') >= 0 ? at + '&w=' + w + '&theme=' + theme
+                                       : 'shot.html?at=' + at + '&seed=1&w=' + w + '&theme=' + theme;
       document.getElementById('frames').appendChild(f);
       await new Promise(r => { f.onload = r; setTimeout(r, 8000); });
       await new Promise(r => setTimeout(r, 900));
@@ -48,12 +50,26 @@
            enough to hit with a finger. */
         if (e.tagName === 'BUTTON' && r.height > 0 && r.height < 34) tiny++;
       }
+      /* The highlight has to be actually visible, not merely present in the
+         DOM. It once lived entirely inside the first frame of an animation, so
+         the element was there, carried the right class, and showed nothing. */
+      let invisible = '';
+      const litEl = d.querySelector('.bigsum .lit');
+      if (litEl) {
+        const cs = cw.getComputedStyle(litEl);
+        const transparent = v => !v || /rgba\(0, 0, 0, 0\)|\/ 0\)|^none$/.test(v);
+        if (transparent(cs.boxShadow) && transparent(cs.backgroundColor)) {
+          invisible = 'lit digits have no background and no underline (' + cs.backgroundColor + ' / ' + cs.boxShadow + ')';
+        }
+      }
+
       const overflow = d.documentElement.scrollWidth > cw.innerWidth + 0.5;
-      const okRow = !bad.length && !overflow && !tiny;
+      const okRow = !bad.length && !overflow && !tiny && !invisible;
       if (!okRow) fails++;
-      log.push((okRow ? 'ok   ' : 'FAIL ') + at.padEnd(26) + String(w).padStart(5) + 'px  scroll=' + d.documentElement.scrollWidth +
+      log.push((okRow ? 'ok   ' : 'FAIL ') + at.padEnd(26) + String(w).padStart(5) + 'px ' + theme.padEnd(6) + ' scroll=' + d.documentElement.scrollWidth +
         (bad.length ? '  sticking out: ' + bad.slice(0, 3).join(' ') : '') +
-        (tiny ? '  ' + tiny + ' buttons under 34px tall' : ''));
+        (tiny ? '  ' + tiny + ' buttons under 34px tall' : '') +
+        (invisible ? '  ' + invisible : ''));
       f.remove();
       out.textContent = log.join('\n');
     }

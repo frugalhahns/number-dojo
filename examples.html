@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Number Dojo: worked examples</title>
 <meta name="description" content="Fully worked step by step solutions for every kind of problem in Number Dojo. Printable.">
+<meta name="theme-color" content="#101826">
 <script>
   (function () {
     var pref = 'auto';
@@ -17,6 +18,10 @@
     var light = pref === 'light' ||
       (pref !== 'dark' && window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches);
     document.documentElement.dataset.theme = light ? 'light' : 'dark';
+    if (light) {
+      var bar = document.querySelector('meta[name="theme-color"]');
+      if (bar) bar.setAttribute('content', '#f2f5fa');
+    }
   })();
 </script>
 <link rel="stylesheet" href="css/dojo.css">

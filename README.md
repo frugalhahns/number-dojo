@@ -106,6 +106,12 @@ that matters fixed. They are the ones worth watching him get.
 - **Difficulty only ever goes up.** Three problems in a row with no misses moves
   a move up a level, and nothing moves it back down. A bad five minutes cannot
   undo a good week.
+- **The step he is on is marked.** In a walkthrough, pressing *then what* does
+  not just add a line to a list: the newly uncovered step gets the same border
+  and the same coloured number as the live blank on the solve screen, so "the
+  one you are on" looks identical whether he is watching it done or doing it. It
+  is marked by colour rather than by fading its neighbours, because dimming text
+  he still has to read back is a poor trade.
 - **As many worked examples as he wants.** Tapping a rung opens a walkthrough,
   and finishing one offers **another example** rather than pushing him into
   practice. Each new one prefers a method he did not just watch, so a rung that
@@ -126,6 +132,17 @@ Twenty-two lines, forty-eight forms, all of them collectable.
 Three player slots, so a brother can have his own team.
 
 ---
+
+## Light and dark
+
+The stylesheet is entirely driven by `html[data-theme]`, so switching is one
+attribute and needs no reload. The button in the top bar cycles **auto, light,
+dark** and shows the setting it is on rather than the one it would move to,
+because a button that tells you where you would go is a riddle. Auto follows the
+device and keeps following it: a Chromebook that switches itself to night mode
+at seven changes the page under him without a reload. There is a three-way
+control on the **Grown-ups** page as well, the setting is per player slot, and
+`index.html` resolves it before the first paint so light mode never flashes dark.
 
 ## The worked examples page
 
@@ -165,8 +182,8 @@ a headless run can wait for the answer instead of guessing.
 | Page | What it holds down |
 |---|---|
 | `selftest.html` | Content. ~1,700,000 checks. Builds every strategy at every level 500 times over and proves each chain lands on the right answer, that no step goes negative or fractional, that every line has exactly one blank, that no hint contains its own answer, that nested chains answer the question their parent asked, that boards render at every point without throwing and never draw off their own axis, that each level can make at least 14 different problems, that every rung of the ladder always finds a strategy willing to explain its numbers and rarely has to redraw to do it, that every rung really serves the digit counts its name promises, that every step lights up part of the problem and that the part it names actually exists in those digits, that every sprite file exists, that the `localStorage` key in `index.html` has not drifted from `js/state.js`, and that nothing anywhere uses an em dash. |
-| `flowtest.html` | Playability. Fetches `index.html`, injects its real body, and then clicks the real buttons: picks a starter, plays a five problem run in all four gyms through the on-screen keypad, gets one wrong twice on purpose and checks the first miss withholds the answer and the second gives it, opens a nested chain and checks it comes back out into the step it left, checks the highlight starts off, comes on at the first click of the walkthrough, and moves across the problem as the steps go by, asks a finished walkthrough for another example and checks it is a different problem that starts over from step one, wins one in its head, opens all three sheets, and reads the save back out of `localStorage`. |
-| `widthtest.html` | Layout. Loads five app screens and the worked examples page at ten viewport widths from 320px up in iframes, and fails if anything sticks out sideways or if any button is under 34px tall. Iframes rather than a resized window because **headless Chrome will not make a window narrower than 500 CSS pixels**, so a `--window-size=360` screenshot is a crop of a 500 wide layout and proves nothing. |
+| `flowtest.html` | Playability. Fetches `index.html`, injects its real body, and then clicks the real buttons: picks a starter, plays a five problem run in all four gyms through the on-screen keypad, gets one wrong twice on purpose and checks the first miss withholds the answer and the second gives it, opens a nested chain and checks it comes back out into the step it left, checks the highlight starts off, comes on at the first click of the walkthrough, and moves across the problem as the steps go by, asks a finished walkthrough for another example and checks it is a different problem that starts over from step one, checks exactly one step is marked as the current one and that the mark moves on the next click, taps the theme button four times and checks it walks auto, light, dark and back while really changing the page, wins one in its head, opens all three sheets, and reads the save back out of `localStorage`. |
+| `widthtest.html` | Layout. Loads five app screens and the worked examples page at ten viewport widths from 320px up in iframes, alternating light and dark theme so a regression in one cannot hide behind the other, and fails if anything sticks out sideways, if any button is under 34px tall, or if the lit digits have neither a background nor an underline. Iframes rather than a resized window because **headless Chrome will not make a window narrower than 500 CSS pixels**, so a `--window-size=360` screenshot is a crop of a 500 wide layout and proves nothing. |
 
 Run them headless from the repository root:
 
@@ -225,6 +242,7 @@ js/
   ui.js             DOM helpers, sheets, sparkles, confetti
   state.js          the save file, three slots, XP and difficulty
   audio.js          a small WebAudio synth, no files to download
+  theme.js          auto, light and dark, applied live
   roster.js         22 evolution lines, 48 forms
   selftest.js       the content invariants
   flowtest.js       the button clicking

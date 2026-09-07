@@ -2,11 +2,18 @@
 
 import { load, S, save } from './state.js';
 import { setSound } from './audio.js';
+import * as Theme from './theme.js';
 import { qs } from './ui.js';
 import { home, topbar } from './screens.js';
 
 load();
 setSound(S.sound !== false);
+/* index.html already resolved the theme before the first paint, but it did so
+   from the raw localStorage blob. Re-apply from the loaded save so a slot
+   switch or a fresh save lands on the right one, and keep following the machine
+   while the setting is auto. */
+Theme.apply(S.theme || 'auto');
+Theme.watch(() => S.theme || 'auto');
 
 /* A physical keyboard is faster than the pad and he uses one at the desk, so
    digits, backspace and enter all reach the live blank wherever the focus is. */
