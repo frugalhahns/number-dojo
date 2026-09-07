@@ -85,10 +85,11 @@ export async function run() {
     const gymName = card.querySelector('.gname').textContent;
     card.click();
     await until(() => $$('.movecard').length > 0, gymName + ' to open');
-    ok($$('.movecard').length === 5, gymName + ' lists five moves, saw ' + $$('.movecard').length);
+    ok($$('.movecard').length >= 4, gymName + ' lists a ladder, saw ' + $$('.movecard').length + ' rungs');
+    ok($$('.rex').length === $$('.movecard').length, gymName + ' every rung shows its example');
 
     /* the demo: every step, then in to try it */
-    $$('.movecard')[g % 5].click();
+    $$('.movecard')[g % $$('.movecard').length].click();
     await until(() => !$('#sheet').classList.contains('hidden'), 'the move sheet to open');
     let clicks = 0;
     while (clicks < 8) {
@@ -97,6 +98,7 @@ export async function run() {
       b.click(); clicks++; await sleep(30);
     }
     ok(clicks >= 2, gymName + ' demo walked ' + clicks + ' steps');
+    ok(!!$('.stratline'), gymName + ' demo names the method it is using');
     ok(!!$('.work.demo .wrow'), gymName + ' demo showed working out');
     btn('I will try it').click();
     await until(() => !!$('.wrow.live'), gymName + ' run to start');
@@ -154,16 +156,39 @@ export async function run() {
     ok(peek().idx === p.idx + 1, 'typing the answer it gave him still moves on');
   }
 
+  /* ---------------------------------------------------- the highlight ----- */
+  {
+    if (btn('‹ Back')) btn('‹ Back').click();
+    await until(() => $$('.movecard').length > 0, 'the gym');
+    $$('.movecard')[3].click();                       // two digits plus two
+    await until(() => !$('#sheet').classList.contains('hidden'), 'the rung sheet');
+    btn('I will try it').click();
+    await until(() => !!$('.wrow.live'), 'a run to start');
+    const seen = [];
+    for (let k = 0; k < 3 && peek().step; k++) {
+      const lit = $$('.bigsum .lit').map(e => e.textContent).join('+');
+      const whole = $('.bigsum').textContent;
+      ok($$('.bigsum .lit').length > 0, 'step ' + (k + 1) + ' lights up part of the problem');
+      ok(lit.length > 0 && whole.indexOf(lit.split('+')[0]) >= 0,
+         'step ' + (k + 1) + ' lights up "' + lit + '", which is part of "' + whole + '"');
+      seen.push(lit);
+      await tap(peek().step.answer);
+      await sleep(340);
+    }
+    ok(new Set(seen).size > 1, 'the highlight moves as the steps go by, saw ' + JSON.stringify(seen));
+    note('highlight walked: ' + seen.join('  then  '));
+  }
+
   /* --------------------------------------------- breaking a step down ----- */
   {
     /* Work through until a step offers a nested chain, then take it. Work in
        Tens at level 2 always offers one, so the level is forced first. */
-    S.lv['add.scale'] = 2; save();
+    S.lv['add.s3'] = 2; save();
     let found = false;
     for (let attempt = 0; attempt < 14 && !found; attempt++) {
       btn('‹ Back').click();
       await until(() => $$('.movecard').length > 0, 'the gym');
-      const card = $$('.movecard').find(c => c.textContent.includes('Zoom Out'));
+      const card = $$('.movecard').find(c => c.textContent.includes('Adding whole tens'));
       card.click();
       await until(() => !$('#sheet').classList.contains('hidden'), 'the sheet');
       btn('I will try it').click();
@@ -224,7 +249,8 @@ export async function run() {
 
   /* --------------------------------------------------------- the save ----- */
   ok(S.steps > 20, 'the save counted the steps worked out (' + S.steps + ')');
-  ok(Object.keys(S.done).length >= 4, 'per-strategy counts were written for ' + Object.keys(S.done).length + ' strategies');
+  ok(Object.keys(S.done).length >= 4, 'per-rung counts were written for ' + Object.keys(S.done).length + ' rungs');
+  ok(Object.keys(S.method).length >= 4, 'which methods explained them was recorded (' + Object.keys(S.method).join(', ') + ')');
   ok(Object.values(S.sessions).filter(n => n > 0).length === 4, 'all four gyms recorded a finished run');
   const raw = localStorage.getItem('nd.save.v1.s3');
   ok(!!raw && JSON.parse(raw).buddy === 'pikachu', 'it all survived a round trip through localStorage');

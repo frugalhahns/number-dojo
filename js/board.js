@@ -44,6 +44,21 @@ function drawLine(b, upto) {
     s.appendChild(el('text', { x: x(v), y: Y + 26, class: 'tickno' }, String(v)));
   }
 
+  /* Where he is standing before he has done anything. Without this the board is
+     a bare axis until the first jump is earned, which reads as a bug rather
+     than as a picture waiting to be filled in. */
+  const starts = b.jumps.map(j => j.from);
+  if (starts.length) {
+    const s0 = Math.min.apply(null, starts);
+    const g0 = el('g', { class: 'start' });
+    g0.appendChild(el('circle', { cx: x(s0), cy: Y, r: 6, class: 'dot' }));
+    /* Only name it if the axis is not already naming it. Two 730s stacked on
+       top of each other reads as a rendering fault. */
+    if (s0 % stepv !== 0) g0.appendChild(el('text', { x: x(s0), y: Y - 14, class: 'jlabel' }, String(s0)));
+    s.appendChild(g0);
+  }
+
+
   /* Arcs above the line, stacked so two jumps from the same place do not sit on
      top of each other. */
   let lane = 0, lastTo = null;

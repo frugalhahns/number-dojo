@@ -6,12 +6,13 @@ import { ADD } from './ops/add.js';
 import { SUB } from './ops/sub.js';
 import { MUL } from './ops/mul.js';
 import { DIV } from './ops/div.js';
-import { rng, ri, pick } from './num.js';
+import { rng } from './num.js';
+import { BY_SHAPE, SHAPES_FOR } from './shapes.js';
 
 export const GYMS = [
   { op: 'add', name: 'Sprout Gym',  what: 'Adding',      sign: '+', type: 'grass',    starter: 'chikorita', list: ADD,
     leader: 'Meganium', hue: 'grass',
-    idea: 'Adding is moving forward on the number line. You are allowed to move in whatever chunks you like.' },
+    idea: 'Adding is moving forward. You are allowed to move in whatever chunks you like.' },
   { op: 'sub', name: 'Tide Gym',    what: 'Subtracting', sign: '−', type: 'water',    starter: 'wooper',    list: SUB,
     leader: 'Quagsire', hue: 'water',
     idea: 'Subtracting is the GAP between two numbers. You can walk it backwards, or forwards, or slide both numbers along.' },
@@ -47,12 +48,56 @@ export function make(strategyId, level, seed) {
   return c;
 }
 
+/* Which strategies can honestly explain this particular pair of numbers.
+   `fits` is the whole join between the ladder and the twenty methods: the shape
+   decides what the problem looks like, and this decides who is allowed to talk
+   about it. */
+export function fitting(shapeId, problem) {
+  const shape = BY_SHAPE[shapeId];
+  if (!shape) return [];
+  return shape.uses.map(id => BY_STRATEGY[id]).filter(s => s && s.fits(problem));
+}
+
+/* Build one problem for a rung of the ladder. The shape makes the numbers, then
+   a strategy that fits them is picked at random, so the same rung explains
+   itself differently from one problem to the next without him ever choosing.
+
+   If a draw comes out with nothing that fits, draw again rather than forcing a
+   method onto numbers it cannot handle. selftest.js checks that this almost
+   never happens, and that the fallback is still correct when it does. */
+export function makeForShape(shapeId, level, seed) {
+  const shape = BY_SHAPE[shapeId];
+  if (!shape) return null;
+  const lv = Math.max(1, Math.min(shape.levels, level | 0 || 1));
+  let p = null, options = [], tries = 0;
+  let s = seed;
+  for (; tries < 40; tries++) {
+    p = shape.gen(rng(s), lv);
+    options = fitting(shapeId, p);
+    if (options.length) break;
+    s = (s * 1103515245 + 12345) & 0x7fffffff;
+  }
+  const strat = options.length
+    ? options[Math.abs(s + lv) % options.length]
+    : BY_STRATEGY[shape.uses[0]];
+  const c = strat.build(p);
+  c.level = lv;
+  c.seed = s;
+  c.shape = shapeId;
+  c.problem = p;
+  c.fitted = options.length;
+  c.tries = tries + 1;
+  return c;
+}
+
 /* A problem that is not the one he just did. Repeating the same numbers twice in
    a row reads as a bug to a kid even when it is only chance. */
-export function makeFresh(strategyId, level, avoidTitle) {
+export function makeFresh(shapeId, level, avoidTitle) {
   for (let i = 0; i < 24; i++) {
-    const c = make(strategyId, level, (Math.random() * 2000000000) | 0);
+    const c = makeForShape(shapeId, level, (Math.random() * 2000000000) | 0);
     if (!avoidTitle || c.title !== avoidTitle) return c;
   }
-  return make(strategyId, level, (Math.random() * 2000000000) | 0);
+  return makeForShape(shapeId, level, (Math.random() * 2000000000) | 0);
 }
+
+export { SHAPES_FOR, BY_SHAPE };

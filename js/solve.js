@@ -21,7 +21,7 @@ import { sfx } from './audio.js';
 import * as B from './buddy.js';
 import { S, save, addXp, noteResult, levelOf } from './state.js';
 import { form, stageForLevel } from './roster.js';
-import { BY_STRATEGY, gymOf, makeFresh } from './strategies.js';
+import { BY_STRATEGY, BY_SHAPE, gymOf, makeFresh } from './strategies.js';
 
 const RUN = 5;                 // problems in one training run
 
@@ -49,6 +49,47 @@ let soloMode = false;
 let buddyImg = null;
 let onDone = null;
 
+/* Which digits of a number a focus token points at, as a [start, end) slice of
+   its digit string. Anything that does not land on real digits comes back null
+   and the number is simply left alone, so a token can never blank out a number
+   or light up nothing at all. */
+function slice(text, token) {
+  const n = text.length;
+  const r = { all: [0, n], ones: [n - 1, n], tail: [n - 1, n], tens: [n - 2, n - 1],
+              hundreds: [n - 3, n - 2], head: [0, n - 1], head2: [0, n - 2], tail2: [n - 2, n] }[token];
+  if (!r) return null;
+  const a = Math.max(0, r[0]), b = Math.min(n, r[1]);
+  return b > a ? [a, b] : null;
+}
+
+/* One side of the problem, with the digits this step is working on lit up and
+   everything else pushed back. This is the thing that makes "19 wants to be 20"
+   land: he can see which 19. */
+function operand(text, token, dimRest) {
+  const wrap = el('span', 'operand');
+  const r = token ? slice(text, token) : null;
+  if (!r) {
+    wrap.appendChild(el('span', dimRest ? 'dimd' : '', text));
+    return wrap;
+  }
+  if (r[0] > 0) wrap.appendChild(el('span', 'dimd', text.slice(0, r[0])));
+  wrap.appendChild(el('span', 'lit', text.slice(r[0], r[1])));
+  if (r[1] < text.length) wrap.appendChild(el('span', 'dimd', text.slice(r[1])));
+  return wrap;
+}
+
+function bigSum(chain, focus) {
+  const wrap = el('div', 'bigsum');
+  if (!chain.oper) { wrap.textContent = chain.title + ' = ?'; return wrap; }
+  const any = !!(focus && (focus.a || focus.b));
+  wrap.appendChild(operand(chain.lhs, any ? focus.a : null, any));
+  wrap.appendChild(el('span', 'oper', chain.oper));
+  wrap.appendChild(operand(chain.rhs, any ? focus.b : null, any));
+  wrap.appendChild(el('span', 'oper', '='));
+  wrap.appendChild(el('span', 'qmark', '?'));
+  return wrap;
+}
+
 function buddyForm() {
   const id = S.buddy || 'chikorita';
   return form(id, stageForLevel(id, S.level));
@@ -57,8 +98,8 @@ function buddyForm() {
 export function start(opts) {
   run = {
     op: opts.op,
-    strategyIds: opts.strategyIds,
-    mixed: opts.mixed,
+    shapeIds: opts.shapeIds,
+    mixed: opts.shapeIds.length > 1,
     n: 0, solved: 0, perfect: 0, xp: 0,
     caught: null, evolved: null, levelled: 0
   };
@@ -67,15 +108,15 @@ export function start(opts) {
   nextProblem();
 }
 
-function pickStrategy() {
-  const ids = run.strategyIds;
+function pickShape() {
+  const ids = run.shapeIds;
   return ids[Math.floor(Math.random() * ids.length)];
 }
 
 function nextProblem() {
   if (run.n >= RUN) { onDone(run); return; }
   run.n++;
-  const sid = pickStrategy();
+  const sid = pickShape();
   const chain = makeFresh(sid, levelOf(sid), view && view.title);
   view = chain; stack = []; idx = 0; misses = 0; dirty = false; say = '';   // a fresh opener
   sfx.page();
@@ -87,7 +128,9 @@ function nextProblem() {
 function draw() {
   const app = clear(qs('#app'));
   app.className = 'screen solve';
-  const strat = BY_STRATEGY[stack.length ? stack[0].strategy : view.strategy];
+  const top0 = stack.length ? stack[0] : view;
+  const strat = BY_STRATEGY[view.strategy];
+  const shape = BY_SHAPE[top0.shape];
   const gym = gymOf(strat.id);
   document.body.dataset.hue = gym.hue;
 
@@ -96,8 +139,7 @@ function draw() {
   head.appendChild(button('‹ Back', 'chip ghost', () => onDone(run, true)));
   head.appendChild(pips(run.n - 1, RUN, 'runpips'));
   const chip = el('span', 'chip move');
-  chip.textContent = strat.move;
-  chip.title = strat.name;
+  chip.textContent = shape ? shape.name : strat.name;
   head.appendChild(chip);
   app.appendChild(head);
 
@@ -109,7 +151,7 @@ function draw() {
     crumb.appendChild(el('b', '', view.title));
     top.appendChild(crumb);
   }
-  top.appendChild(el('div', 'bigsum', view.title + ' = ?'));
+  top.appendChild(bigSum(view, idx < view.steps.length ? view.steps[idx].focus : null));
   top.appendChild(el('div', 'stratline', strat.name + '. ' + strat.blurb));
   app.appendChild(top);
 
@@ -291,7 +333,11 @@ function solved() {
   run.solved++;
   const clean = !dirty;
   if (clean) { run.perfect++; run.xp += 5; addXp(5); }
-  const bumped = noteResult(view.strategy, clean);
+  /* Difficulty belongs to the rung, because the rung is what he chose. The
+     method is counted too, but only so the grown-ups page can show which
+     explanations he has actually met. */
+  S.method[view.strategy] = (S.method[view.strategy] || 0) + 1;
+  const bumped = noteResult(view.shape || view.strategy, clean);
   save();
   clean ? sfx.perfect() : sfx.solved();
   B.react(buddyImg, 'spin');
@@ -327,7 +373,7 @@ function soloAsk() {
     accept() {
       run.solved++; run.perfect++; run.xp += 10; addXp(10);
       S.solo[run.op] = (S.solo[run.op] || 0) + 1;
-      noteResult(view.strategy, true);
+      noteResult(view.shape || view.strategy, true);
       save(); sfx.perfect(); B.react(buddyImg, 'spin');
       showSolved(true, null, true);
     },
@@ -379,7 +425,7 @@ function showSolved(clean, bumped, solo) {
   side.appendChild(bub);
   app.appendChild(side);
   if (clean) sparkle(img, 14);
-  if (bumped === 'up') toast('Harder numbers unlocked for ' + BY_STRATEGY[view.strategy].name + '.', 3000);
+  if (bumped === 'up') toast('Harder numbers unlocked for ' + (BY_SHAPE[view.shape] || { name: 'this' }).name + '.', 3000);
   const row = el('div', 'extras');
   row.appendChild(button(run.n >= RUN ? 'Finish the run' : 'Next one ›', 'btn primary', () => {
     if (run.n >= RUN) return onDone(run);

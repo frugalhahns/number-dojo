@@ -132,6 +132,23 @@ html[data-theme="light"] .gym.g-rock .gsign { color: #7a4b17; }
 .mex { font-family: ui-monospace, "SFMono-Regular", Menlo, monospace; color: var(--ink-dim); font-size: .9rem; }
 .mdone { font-size: .78rem; color: var(--ink-dim); }
 
+/* A rung of the ladder. The example IS the label: "45 + 5" tells him what he is
+   about to practice faster than any sentence can, so it gets the big type and
+   the plain-English name sits underneath it. */
+.movecard.rung .mtop { gap: 12px; align-items: center; }
+.rnum {
+  flex: none; width: 26px; height: 26px; border-radius: 99px;
+  background: var(--card2); border: 1px solid var(--line);
+  display: grid; place-items: center; font-size: .8rem; font-weight: 800; color: var(--ink-dim);
+}
+.rex {
+  font-family: ui-monospace, "SFMono-Regular", Menlo, monospace;
+  font-size: clamp(1.15rem, 4vw, 1.5rem); font-weight: 800; letter-spacing: -.01em;
+  font-variant-numeric: tabular-nums; color: var(--key);
+}
+.movecard.rung .mblurb { color: var(--ink); font-size: .95rem; padding-left: 38px; }
+.movecard.rung .mdone { padding-left: 38px; }
+
 .pips { display: flex; gap: 5px; justify-content: center; }
 .pips.big .pip { width: 14px; height: 14px; }
 .pip { width: 9px; height: 9px; border-radius: 99px; background: var(--card2); border: 1px solid var(--line); display: block; }
@@ -155,6 +172,29 @@ html[data-theme="light"] .gym.g-rock .gsign { color: #7a4b17; }
   font-variant-numeric: tabular-nums; line-height: 1.15;
 }
 .bigsum.win { color: var(--key); }
+
+/* The problem, with the part this step is working on lit up.
+   Everything else is pushed back rather than hidden, because he still has to
+   see the whole problem to know where the lit bit sits inside it. */
+.bigsum .operand { white-space: nowrap; }
+.bigsum .oper { margin: 0 .28em; color: var(--ink-dim); }
+.bigsum .qmark { color: var(--key); }
+.bigsum .dimd { opacity: .38; transition: opacity .25s ease; }
+.bigsum .lit {
+  color: var(--key);
+  background: color-mix(in srgb, var(--key) 18%, transparent);
+  box-shadow: 0 3px 0 0 var(--key);
+  border-radius: 8px;
+  padding: 0 .1em;
+  margin: 0 -.02em;
+  animation: pickup .38s ease;
+  display: inline-block;
+}
+@keyframes pickup {
+  0%   { transform: translateY(0)    scale(1);    background: transparent; box-shadow: 0 3px 0 0 transparent; }
+  45%  { transform: translateY(-6px) scale(1.14); }
+  100% { transform: translateY(0)    scale(1); }
+}
 .crumb { color: var(--ink-dim); font-size: .85rem; }
 .stratline { color: var(--ink-dim); font-size: .9rem; max-width: 620px; margin: 2px auto 0; }
 .recap {
@@ -175,6 +215,8 @@ svg.board .plabel, svg.board .alabel { fill: var(--ink); font-size: 18px; font-w
 svg.board .plabel { text-anchor: start; }
 svg.board .ainner { fill: var(--ink); font-size: 17px; font-weight: 700; text-anchor: middle; font-family: inherit; }
 svg.board .jump { animation: fadein .35s ease both; }
+svg.board .start .dot { fill: var(--ink-dim); }
+svg.board .start .jlabel { fill: var(--ink-dim); font-size: 15px; }
 svg.board .blk { stroke: var(--line); }
 svg.board .blk.hund { fill: color-mix(in srgb, var(--key) 55%, transparent); }
 svg.board .blk.ten  { fill: color-mix(in srgb, var(--key) 75%, transparent); }

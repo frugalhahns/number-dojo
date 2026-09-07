@@ -7,7 +7,8 @@ import { sfx } from './audio.js';
 import * as B from './buddy.js';
 import { S, save, load, reset, XP_FOR, levelOf, setSlot, activeSlot } from './state.js';
 import { LINES, BY_ID, STARTERS, EVOLVE_AT, form, stageForLevel } from './roster.js';
-import { GYMS, BY_OP, make } from './strategies.js';
+import { GYMS, BY_OP, BY_STRATEGY, makeForShape, fitting } from './strategies.js';
+import { SHAPES_FOR } from './shapes.js';
 import * as Solve from './solve.js';
 import { render } from './board.js';
 
@@ -60,8 +61,8 @@ export function home() {
     const card = el('button', 'gym g-' + g.hue);
     card.type = 'button';
     card.appendChild(el('div', 'gsign', g.sign));
-    card.appendChild(el('div', 'gname', g.name));
-    card.appendChild(el('div', 'gwhat', g.what));
+    card.appendChild(el('div', 'gname', g.what));
+    card.appendChild(el('div', 'gwhat', SHAPES_FOR(g.op).length + ' kinds, ' + g.name));
     const runs = S.sessions[g.op] || 0;
     card.appendChild(pips(Math.min(runs, SESSIONS_FOR_BADGE), SESSIONS_FOR_BADGE, 'small'));
     if (S.badges.includes(g.op)) card.appendChild(el('div', 'gbadge', '★ badge earned'));
@@ -128,47 +129,56 @@ export function gym(op) {
   head.appendChild(el('span', 'chip move', g.name));
   app.appendChild(head);
 
-  app.appendChild(el('h1', 'title small', g.what + ': pick a move'));
-  app.appendChild(el('p', 'idea', g.idea));
+  app.appendChild(el('h1', 'title small', g.what));
+  app.appendChild(el('p', 'idea', 'Pick the kind of problem you want to practice. They get harder as you go down.'));
 
+  /* The ladder. He picks what the problem LOOKS like, not which method to use:
+     the method is chosen per problem from whichever ones fit those numbers, so
+     the same rung teaches several ways without ever asking him to choose one. */
   const list = el('div', 'moves');
-  for (const s of g.list) {
-    const card = el('button', 'movecard');
+  SHAPES_FOR(op).forEach((sh, i) => {
+    const card = el('button', 'movecard rung');
     card.type = 'button';
+
     const top = el('div', 'mtop');
-    top.appendChild(el('b', 'mmove', s.move));
-    top.appendChild(el('span', 'mname', s.name));
-    const lv = levelOf(s.id);
+    top.appendChild(el('span', 'rnum', i + 1));
+    top.appendChild(el('b', 'rex', sh.example));
+    const lv = levelOf(sh.id);
     const pip = el('span', 'mlv');
-    for (let i = 1; i <= s.levels; i++) pip.appendChild(el('i', 'pip' + (i <= lv ? ' on' : '')));
+    for (let k = 1; k <= sh.levels; k++) pip.appendChild(el('i', 'pip' + (k <= lv ? ' on' : '')));
     top.appendChild(pip);
     card.appendChild(top);
-    card.appendChild(el('div', 'mblurb', s.blurb));
-    const ex = make(s.id, lv, 1234 + s.id.length * 7);
-    card.appendChild(el('div', 'mex', 'like  ' + ex.title));
-    const n = S.done[s.id] || 0;
-    card.appendChild(el('div', 'mdone', n ? n + ' done' : 'new'));
-    card.addEventListener('click', () => moveSheet(s, g));
+
+    card.appendChild(el('div', 'mblurb', sh.name));
+    const live = makeForShape(sh.id, lv, 4242 + i * 977);
+    const n = S.done[sh.id] || 0;
+    card.appendChild(el('div', 'mdone', (n ? n + ' done' : 'new') + '  ·  like ' + live.title));
+
+    card.addEventListener('click', () => rungSheet(sh, g));
     list.appendChild(card);
-  }
+  });
   app.appendChild(list);
 
   const foot = el('div', 'extras');
-  foot.appendChild(button('Mixed training (all five moves)', 'btn primary', () =>
-    begin(g, g.list.map(s => s.id), false)));
+  foot.appendChild(button('Mixed: all of them', 'btn primary', () =>
+    begin(g, SHAPES_FOR(op).map(sh => sh.id), false)));
   foot.appendChild(button('In my head only', 'btn ghost', () =>
-    begin(g, g.list.map(s => s.id), true)));
+    begin(g, SHAPES_FOR(op).map(sh => sh.id), true)));
   app.appendChild(foot);
 }
 
-/* Tapping a move shows what it does, worked all the way through, before he is
-   asked to do one. Watching first is not cheating, it is how anybody learns a
-   method. */
-function moveSheet(s, g) {
-  const demo = make(s.id, levelOf(s.id), (Math.random() * 1e9) | 0);
-  sheet(s.move, body => {
-    body.appendChild(el('p', 'idea', s.name + '. ' + s.blurb));
+/* Tapping a rung shows one worked all the way through before he is asked to do
+   one. Watching first is not cheating, it is how anybody learns a method, and
+   it is also where the method gets named: he sees "Bridge to Ten" happen rather
+   than being asked to pick it off a list. */
+function rungSheet(sh, g) {
+  const lv = levelOf(sh.id);
+  const demo = makeForShape(sh.id, lv, (Math.random() * 1e9) | 0);
+  const strat = BY_STRATEGY[demo.strategy];
+  sheet(sh.example, body => {
+    body.appendChild(el('p', 'idea', sh.name + '. ' + g.idea));
     body.appendChild(el('div', 'bigsum', demo.title + ' = ?'));
+    body.appendChild(el('div', 'stratline', 'One way to do this one: ' + strat.name + '. ' + strat.blurb));
     const svgWrap = el('div', 'boardwrap');
     body.appendChild(svgWrap);
     const work = el('div', 'work demo');
@@ -184,7 +194,7 @@ function moveSheet(s, g) {
         const q = el('div', 'wq');
         q.appendChild(el('div', 'prompt', st.prompt));
         q.appendChild(el('div', 'wline', st.line.replace('?', String(st.answer))));
-        q.appendChild(el('div', 'unit', st.why || ''));
+        if (st.why) q.appendChild(el('div', 'unit', st.why));
         row.appendChild(q);
         work.appendChild(row);
       }
@@ -205,7 +215,7 @@ function moveSheet(s, g) {
     });
     row.appendChild(nextBtn);
     row.appendChild(button('I will try it', 'btn ghost', () => {
-      S.seen[s.id] = true; save(); closeSheet(); begin(g, [s.id], false);
+      S.seen[sh.id] = true; save(); closeSheet(); begin(g, [sh.id], false);
     }));
     body.appendChild(row);
   });
@@ -214,7 +224,7 @@ function moveSheet(s, g) {
 function begin(g, ids, solo) {
   sfx.page();
   Solve.start({
-    op: g.op, strategyIds: ids, solo,
+    op: g.op, shapeIds: ids, solo,
     onDone: (run, bailed) => bailed ? gym(g.op) : reward(g, run)
   });
 }
@@ -288,7 +298,7 @@ function reward(g, run) {
   sparkle(img, 16);
 
   const row = el('div', 'extras');
-  row.appendChild(button('Another run', 'btn primary', () => begin(g, run.strategyIds, false)));
+  row.appendChild(button('Another run', 'btn primary', () => begin(g, run.shapeIds, false)));
   row.appendChild(button('Back to ' + g.name, 'btn ghost', () => gym(g.op)));
   row.appendChild(button('Home', 'btn ghost', home));
   app.appendChild(row);
@@ -335,7 +345,7 @@ function teamSheet() {
 function helpSheet() {
   sheet('How this works', body => {
     body.appendChild(el('p', '', 'Nobody works out 564 + 70 in one go. You take it apart.'));
-    const demo = make('add.scale', 2, 4242);
+    const demo = makeForShape('add.s3', 2, 4242);
     body.appendChild(el('div', 'bigsum', demo.title + ' = ' + demo.answer));
     const work = el('div', 'work demo');
     demo.steps.forEach((st, i) => {
@@ -350,8 +360,9 @@ function helpSheet() {
     body.appendChild(work);
     const ul = el('ul', 'howto');
     [
-      'Pick a gym: adding, subtracting, multiplying or dividing.',
-      'Pick a move. Tap it to watch your buddy do one first.',
+      'Pick adding, subtracting, multiplying or dividing.',
+      'Pick the kind of problem, like "two digits plus two". They get harder down the list.',
+      'Tap it to watch one done all the way through first.',
       'You only ever fill in one blank at a time.',
       'Getting one wrong costs nothing. You get a hint, then the answer.',
       'If a step is still too big, tap "break this step down" and do it the same way.',
@@ -364,15 +375,16 @@ function helpSheet() {
 
 function grownupSheet() {
   sheet('For grown-ups', body => {
-    body.appendChild(el('p', '', 'Twenty strategies, five per operation, each with three difficulty levels. Difficulty rises after three problems in a row with no misses and never falls, so a bad five minutes cannot undo a good week.'));
+    body.appendChild(el('p', '', 'He picks the kind of problem. The app picks the method, per problem, from whichever of its twenty-three explanations honestly fit those exact numbers. Each kind has three levels: difficulty rises after three problems in a row with no misses and never falls, so a bad five minutes cannot undo a good week.'));
     const t = el('div', 'gtable');
     for (const g of GYMS) {
-      t.appendChild(el('div', 'gt-head', g.name + ' · ' + g.what));
-      for (const s of g.list) {
+      t.appendChild(el('div', 'gt-head', g.what));
+      for (const sh of SHAPES_FOR(g.op)) {
         const r = el('div', 'gt-row');
-        r.appendChild(el('b', '', s.name));
-        r.appendChild(el('span', '', s.blurb));
-        r.appendChild(el('span', 'dim', 'level ' + levelOf(s.id) + '/' + s.levels + ' · ' + (S.done[s.id] || 0) + ' done · ' + (S.clean[s.id] || 0) + ' clean'));
+        r.appendChild(el('b', '', sh.example + '   ' + sh.name));
+        const methods = sh.uses.map(id => BY_STRATEGY[id].name + (S.method[id] ? ' (' + S.method[id] + ')' : ''));
+        r.appendChild(el('span', '', 'methods used: ' + methods.join(', ')));
+        r.appendChild(el('span', 'dim', 'level ' + levelOf(sh.id) + '/' + sh.levels + ' · ' + (S.done[sh.id] || 0) + ' done · ' + (S.clean[sh.id] || 0) + ' clean'));
         t.appendChild(r);
       }
     }

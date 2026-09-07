@@ -5,8 +5,9 @@
 A third grader does not need to be told what 564 + 70 is. He needs to be shown
 that it is 56 + 7 with a 4 in his pocket.
 
-That is the whole site. Twenty ways to take an arithmetic problem apart, met one
-blank at a time, with a Pokemon standing next to the working out reacting to
+That is the whole site. He picks the kind of problem he wants to practice, and
+it gets taken apart one blank at a time, with the part being worked on lit up in
+the problem above and a Pokemon standing next to the working out reacting to
 every step. Vanilla JavaScript, no build step, no network, no accounts.
 
 ```
@@ -26,30 +27,50 @@ came from when it finishes. That recursion is the actual idea being taught.
 
 ---
 
-## The four gyms
+## The ladder
 
-| Gym | Operation | Starter | The idea it sells |
-|---|---|---|---|
-| Sprout | Adding | Chikorita | Adding is moving forward. Move in whatever chunks you like. |
-| Tide | Subtracting | Wooper | Subtracting is the **gap** between two numbers, not a takeaway. |
-| Spark | Multiplying | Pikachu | A times fact is a **rectangle**. Cut it up and add the pieces. |
-| Stone | Dividing | Geodude | Dividing is asking how many groups fit. Take big chunks first. |
+He picks what the problem **looks like**, never which method to use. Eighteen
+rungs across the four operations, each with three levels inside it, and each
+rung gets harder as you go down the list.
 
-## The twenty moves
+| # | Adding | Subtracting | Multiplying | Dividing |
+|---|---|---|---|---|
+| 1 | `45 + 5` two digits plus one | `45 − 8` two digits take one | `7 × 6` the times tables | `56 ÷ 7` the division facts |
+| 2 | `352 + 6` three digits plus one | `352 − 6` three digits take one | `6 × 30` times whole tens | `38 ÷ 5` some left over |
+| 3 | `564 + 70` adding whole tens | `634 − 70` taking whole tens | `4 × 23` two digits times one | `240 ÷ 6` sharing whole tens |
+| 4 | `53 + 35` two digits plus two | `73 − 28` two digits take two | `7 × 213` three digits times one | `72 ÷ 6` more than ten each |
+| 5 | `324 + 324` three digits plus three | `524 − 318` three digits take three | | |
 
-Five per gym, each with three difficulty levels.
+The three levels inside a rung are the thing he never has to think about. "Two
+digits plus two" starts without carrying, then carries, then mixes. "Two digits
+take two" starts without borrowing, then borrows, then throws in the occasional
+close pair like `71 − 68` so that noticing *which* method to reach for becomes
+its own skill.
 
-**Adding** · Bridge to Ten (`56 + 7 → 56 + 4 + 3`) · Split by Place
-(`46 + 37 → 70 + 13`) · Work in Tens (`564 + 70 → 56 + 7`) · Round and Give Back
-(`58 + 27 → 60 + 27 − 2`) · Nearly a Double (`7 + 8 → 7 + 7 + 1`)
+## The twenty-three methods
 
-**Subtracting** · Count Up the Gap (`73 − 68 → 2 + 3`) · Take It Away in Pieces
-(`73 − 28 → −20 −3 −5`) · Split by Place (`86 − 34 → 50 + 2`) · Slide Them Both
-(`73 − 28 → 75 − 30`) · Work in Tens (`634 − 70 → 63 − 7`)
+A **shape** owns the numbers. A **strategy** owns the explanation. The join
+between them is `strategy.fits(problem)`: the rung makes a problem, and whichever
+strategies can honestly handle those exact numbers are the ones it picks from, at
+random, so the same rung explains itself several different ways without ever
+asking a child to choose a method off a list.
+
+Each has three difficulty levels of its own for when it is driven directly.
+
+**Adding** · Just the Ones (`45 + 3 → 40 + 8`) · Bridge to Ten
+(`56 + 7 → 56 + 4 + 3`) · Split by Place (`46 + 37 → 70 + 13`) · Work in Tens
+(`564 + 70 → 56 + 7`) · Round and Give Back (`58 + 27 → 60 + 27 − 2`) ·
+Nearly a Double (`7 + 8 → 7 + 7 + 1`)
+
+**Subtracting** · Just the Ones (`45 − 3 → 40 + 2`) · Count Up the Gap
+(`73 − 68 → 2 + 3`) · Take It Away in Pieces (`73 − 28 → −20 −3 −5`) ·
+Split by Place (`86 − 34 → 50 + 2`) · Slide Them Both (`73 − 28 → 75 − 30`) ·
+Work in Tens (`634 − 70 → 63 − 7`)
 
 **Multiplying** · Anchor on Five (`7 × 8 → 35 + 21`) · Ten Then Trim
 (`6 × 9 → 60 − 6`) · Split the Big One (`4 × 23 → 80 + 12`) · Double, Double
-(`4 × 16 → 16, 32, 64`) · Halve and Double (`5 × 14 → 10 × 7`)
+(`4 × 16 → 16, 32, 64`) · Halve and Double (`5 × 14 → 10 × 7`) · Work in Tens
+(`6 × 30 → 6 × 3`)
 
 **Dividing** · Flip It to Times (`56 ÷ 7 → 7 × ? = 56`) · Chunk Out a Ten
 (`114 ÷ 6 → 10 groups, then 9`) · Halve and Halve (`48 ÷ 4 → 24 → 12`) ·
@@ -64,6 +85,12 @@ that matters fixed. They are the ones worth watching him get.
 - **One blank is live.** Everything above it is his own finished working;
   everything below it is not on screen at all. A step he cannot see is a step he
   cannot panic about.
+- **The problem shows you what it is talking about.** Every step names which
+  digits it is touching, and the problem at the top of the screen lights exactly
+  those and pushes the rest back. On `22 − 19`, the step that says "19 wants to
+  be 20" lights the **19**; on `42 + 47`, the tens step lights both **4**s and
+  the ones step lights the **2** and the **7**. It is the difference between
+  following an explanation and hunting for what it refers to.
 - **A miss costs nothing.** First miss gets a hint that does not contain the
   answer, which `selftest.js` checks by regex on every hint of every generated
   problem. Second miss gives the answer and the reason, and he still has to type
@@ -110,8 +137,8 @@ a headless run can wait for the answer instead of guessing.
 
 | Page | What it holds down |
 |---|---|
-| `selftest.html` | Content. ~950,000 checks. Builds every strategy at every level 500 times over and proves each chain lands on the right answer, that no step goes negative or fractional, that every line has exactly one blank, that no hint contains its own answer, that nested chains answer the question their parent asked, that boards render at every point without throwing and never draw off their own axis, that each level can make at least 14 different problems, that every sprite file exists, that the `localStorage` key in `index.html` has not drifted from `js/state.js`, and that nothing anywhere uses an em dash. |
-| `flowtest.html` | Playability. Fetches `index.html`, injects its real body, and then clicks the real buttons: picks a starter, plays a five problem run in all four gyms through the on-screen keypad, gets one wrong twice on purpose and checks the first miss withholds the answer and the second gives it, opens a nested chain and checks it comes back out into the step it left, wins one in its head, opens all three sheets, and reads the save back out of `localStorage`. |
+| `selftest.html` | Content. ~1,700,000 checks. Builds every strategy at every level 500 times over and proves each chain lands on the right answer, that no step goes negative or fractional, that every line has exactly one blank, that no hint contains its own answer, that nested chains answer the question their parent asked, that boards render at every point without throwing and never draw off their own axis, that each level can make at least 14 different problems, that every rung of the ladder always finds a strategy willing to explain its numbers and rarely has to redraw to do it, that every rung really serves the digit counts its name promises, that every step lights up part of the problem and that the part it names actually exists in those digits, that every sprite file exists, that the `localStorage` key in `index.html` has not drifted from `js/state.js`, and that nothing anywhere uses an em dash. |
+| `flowtest.html` | Playability. Fetches `index.html`, injects its real body, and then clicks the real buttons: picks a starter, plays a five problem run in all four gyms through the on-screen keypad, gets one wrong twice on purpose and checks the first miss withholds the answer and the second gives it, opens a nested chain and checks it comes back out into the step it left, checks the highlight is on screen and moves as the steps go by, wins one in its head, opens all three sheets, and reads the save back out of `localStorage`. |
 | `widthtest.html` | Layout. Loads five screens at ten viewport widths from 320px up in iframes, and fails if anything sticks out sideways or if any button is under 34px tall. Iframes rather than a resized window because **headless Chrome will not make a window narrower than 500 CSS pixels**, so a `--window-size=360` screenshot is a crop of a 500 wide layout and proves nothing. |
 
 Run them headless from the repository root:
@@ -141,8 +168,9 @@ clicking to reach. It writes to the test slot only and never touches a real save
   "http://localhost:8791/shot.html?at=solve002&seed=1"
 ```
 
-`at=` takes `pick`, `home`, `gymN`, `demoNM`, `solveNMK` (gym, move, steps already
-answered), `reward` or `team`. Note that `shot.html` carries its own viewport
+`at=` takes `pick`, `home`, `gymN`, `demoNM`, `solveNMK` (gym, rung, steps already
+answered), `reward` or `team`. `solve021` is the Sprout Gym, third rung, one step
+in, which is the `564 + 70` breakdown with the tens lit up. Note that `shot.html` carries its own viewport
 meta tag: it injects only the **body** of `index.html`, so without one it lays
 out at 980px and every mobile screenshot is wrong.
 
@@ -158,9 +186,10 @@ js/
   ops/sub.js        five subtraction strategies
   ops/mul.js        five multiplication strategies
   ops/div.js        five division strategies
-  strategies.js     the gyms, the registry, and make(id, level, seed)
+  shapes.js         the ladder: eighteen problem shapes and what they generate
+  strategies.js     the gyms, the registry, and the shape-to-strategy join
   solve.js          the solve loop: one live blank, misses, nesting, in-my-head
-  screens.js        home, gym, the demo sheet, rewards, team, help, grown-ups
+  screens.js        home, the ladder, the demo sheet, rewards, team, grown-ups
   board.js          the pictures: number line, base ten blocks, area, groups
   buddy.js          sprites and the one sentence the buddy says
   ui.js             DOM helpers, sheets, sparkles, confetti
@@ -174,9 +203,11 @@ sprites/
   still/            static fallbacks, used if a GIF fails to load
 ```
 
-Problems are **generated**, never listed. `make(strategyId, level, seed)` builds
-one reproducibly, which is what lets the self test hammer half a million of them
-and still name the exact problem that broke.
+Problems are **generated**, never listed. `makeForShape(shapeId, level, seed)`
+builds one reproducibly: the shape draws the numbers, `fitting()` asks every
+strategy the rung offers whether it can honestly explain them, and one of the
+willing ones is picked. That reproducibility is what lets the self test hammer a
+million and a half of them and still name the exact problem that broke.
 
 ## Credits
 

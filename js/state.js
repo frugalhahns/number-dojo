@@ -34,7 +34,8 @@ function blank() {
     theme: 'auto',
     steps: 0,             // total blanks filled correctly, all time
     solo: {},             // op id -> problems answered without stepping through
-    run: {},              // strategy id -> clean problems in a row, for levelling
+    run: {},              // rung id -> clean problems in a row, for levelling
+    method: {},           // strategy id -> problems explained that way, for the grown-ups page
     shownStage: undefined // the buddy form he has actually been shown, for evolutions
   };
 }
@@ -48,7 +49,7 @@ export function load() {
   S = Object.assign(blank(), raw ? safe(raw) : null);
   /* Objects added to blank() after a save was written come back undefined, so
      every map gets defaulted rather than trusted. */
-  for (const k of ['lv', 'done', 'clean', 'seen', 'sessions', 'solo', 'run']) if (!S[k] || typeof S[k] !== 'object') S[k] = {};
+  for (const k of ['lv', 'done', 'clean', 'seen', 'sessions', 'solo', 'run', 'method']) if (!S[k] || typeof S[k] !== 'object') S[k] = {};
   for (const k of ['team', 'badges']) if (!Array.isArray(S[k])) S[k] = [];
   return S;
 }

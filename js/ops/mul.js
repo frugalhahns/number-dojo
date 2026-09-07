@@ -3,7 +3,7 @@
    up and add the pieces. The area board in js/board.js draws that cut, which is
    the whole reason the pictures are worth having. */
 
-import { ri, pick, step, chain, area, numberLine, jump } from '../num.js';
+import { lit, scalePlace, ri, pick, step, chain, area, numberLine, jump } from '../num.js';
 
 /* ---------------------------------------------------------------- anchor --- */
 /* Lean on the fives, which he already knows because they are half of the tens. */
@@ -11,6 +11,7 @@ export const anchor = {
   id: 'mul.anchor', op: 'mul', name: 'Anchor on Five', move: 'Five Star',
   blurb: 'You already know your fives. Start there and add the few that are missing.',
   levels: 3,
+  fits: p => p.a >= 2 && p.b >= 3 && p.b <= 9 && p.b !== 5,
   gen(r, level) {
     if (level <= 1) return { a: ri(r, 2, 7), b: pick(r, [6, 7, 8]) };
     if (level === 2) return { a: ri(r, 3, 9), b: pick(r, [3, 4, 6, 7, 8, 9]) };
@@ -22,19 +23,19 @@ export const anchor = {
     const easy = a * base, extra = a * rest;
     const steps = [step('Start with the ' + (base === 5 ? 'five' : 'two') + ' you already know.',
       a + ' × ' + base + ' = ?', easy,
-      { hint: base === 5 ? 'Times five is half of times ten. Work out ' + a + ' tens, then halve it.' : 'Just double ' + a + '.',
+      { focus: lit(null, 'all'), hint: base === 5 ? 'Times five is half of times ten. Work out ' + a + ' tens, then halve it.' : 'Just double ' + a + '.',
         why: a + ' × ' + base + ' = ' + easy + '. That is ' + base + ' of the ' + b + ' groups done.' })];
     if (rest === 1) {
       steps.push(step('That was ' + base + ' groups of ' + a + '. You need ' + b + '. Add one more ' + a + '.',
         easy + ' + ' + a + ' = ?', prod,
-        { hint: 'Only one group short.', why: easy + ' + ' + a + ' = ' + prod + '.' }));
+        { focus: lit('all'), hint: 'Only one group short.', why: easy + ' + ' + a + ' = ' + prod + '.' }));
     } else {
       steps.push(step('You have done ' + base + ' groups. ' + rest + ' groups of ' + a + ' are still missing.',
         a + ' × ' + rest + ' = ?', extra,
-        { hint: 'A small fact on its own.', why: a + ' × ' + rest + ' = ' + extra + '.' }));
+        { focus: lit(null, 'all'), hint: 'A small fact on its own.', why: a + ' × ' + rest + ' = ' + extra + '.' }));
       steps.push(step('Stick the two pieces of the rectangle back together.',
         easy + ' + ' + extra + ' = ?', prod,
-        { why: easy + ' + ' + extra + ' = ' + prod + ', so ' + a + ' × ' + b + ' = ' + prod + '.' }));
+        { focus: lit('all', 'all'), why: easy + ' + ' + extra + ' = ' + prod + ', so ' + a + ' × ' + b + ' = ' + prod + '.' }));
     }
     return chain({
       title: a + ' × ' + b, strategy: this.id, answer: prod,
@@ -52,6 +53,7 @@ export const near10 = {
   id: 'mul.near10', op: 'mul', name: 'Ten Then Trim', move: 'Overshoot',
   blurb: 'Round the awkward factor up to a ten, multiply, then take off the groups you added by mistake.',
   levels: 3,
+  fits: p => p.a >= 2 && p.a % 10 !== 0 && [8, 9, 18, 19, 28, 29].indexOf(p.b) >= 0,
   gen(r, level) {
     /* Never a ten. "10 x 9, so pretend the 9 is a 10" is a joke of a problem:
        the whole method is about rounding the awkward factor, and there is
@@ -66,18 +68,18 @@ export const near10 = {
     const over = round - b, big = a * round, trim = a * over;
     const steps = [step('Pretend the ' + b + ' is ' + round + '. Round tens are free.',
       a + ' × ' + round + ' = ?', big,
-      { hint: 'Multiplying by ' + round + ' is ' + a + ' × ' + (round / 10) + ', then a zero on the end.',
+      { focus: lit(null, 'all'), hint: 'Multiplying by ' + round + ' is ' + a + ' × ' + (round / 10) + ', then a zero on the end.',
         why: a + ' × ' + round + ' = ' + big + '. But that is ' + over + ' group' + (over > 1 ? 's' : '') + ' too many.' })];
     if (over === 1) {
       steps.push(step('You counted one extra group of ' + a + '. Take it back off.',
         big + ' − ' + a + ' = ?', prod,
-        { hint: 'Exactly one ' + a + ' too many, so remove exactly one.',
+        { focus: lit('all'), hint: 'Exactly one ' + a + ' too many, so remove exactly one.',
           why: big + ' − ' + a + ' = ' + prod + '.' }));
     } else {
       steps.push(step('You counted ' + over + ' extra groups of ' + a + '. How much is that?',
-        a + ' × ' + over + ' = ?', trim, { hint: 'Just ' + over + ' groups.' }));
+        a + ' × ' + over + ' = ?', trim, { focus: lit('all'), hint: 'Just ' + over + ' groups.' }));
       steps.push(step('Trim it off.', big + ' − ' + trim + ' = ?', prod,
-        { why: big + ' − ' + trim + ' = ' + prod + '.' }));
+        { focus: lit('all', 'all'), why: big + ' − ' + trim + ' = ' + prod + '.' }));
     }
     return chain({
       title: a + ' × ' + b, strategy: this.id, answer: prod,
@@ -95,6 +97,7 @@ export const distribute = {
   id: 'mul.distribute', op: 'mul', name: 'Split the Big One', move: 'Place Split',
   blurb: 'Cut the big number into its tens and ones, multiply each piece, and add.',
   levels: 3,
+  fits: p => p.a >= 2 && p.a <= 9 && p.b >= 11 && p.b <= 999 && p.b % 10 !== 0,
   gen(r, level) {
     if (level <= 1) return { a: ri(r, 2, 4), b: ri(r, 1, 2) * 10 + ri(r, 1, 4) };
     if (level === 2) return { a: ri(r, 3, 9), b: ri(r, 1, 4) * 10 + ri(r, 1, 9) };
@@ -109,23 +112,23 @@ export const distribute = {
       const h = Math.floor(b / 100) * 100, t = b % 100 - o;
       steps.push(step('Cut ' + b + ' into ' + h + ', ' + t + ' and ' + o + '. Hundreds first.',
         a + ' × ' + h + ' = ?', a * h,
-        { hint: a + ' × ' + (h / 100) + ', then two zeros.', why: a + ' × ' + h + ' = ' + (a * h) + '.' }));
+        { focus: lit(null, 'hundreds'), hint: a + ' × ' + (h / 100) + ', then two zeros.', why: a + ' × ' + h + ' = ' + (a * h) + '.' }));
       steps.push(step('Now the tens piece.', a + ' × ' + t + ' = ?', a * t,
-        { hint: a + ' × ' + (t / 10) + ', then one zero.' }));
-      steps.push(step('Now the ones piece.', a + ' × ' + o + ' = ?', a * o, {}));
+        { focus: lit(null, 'tens'), hint: a + ' × ' + (t / 10) + ', then one zero.' }));
+      steps.push(step('Now the ones piece.', a + ' × ' + o + ' = ?', a * o, { focus: lit(null, 'ones'),}));
       steps.push(step('Add all three pieces of the rectangle.',
-        (a * h) + ' + ' + (a * t) + ' + ' + (a * o) + ' = ?', prod, {}));
+        (a * h) + ' + ' + (a * t) + ' + ' + (a * o) + ' = ?', prod, { focus: lit('all', 'all'),}));
       parts = (a * h) + ' + ' + (a * t) + ' + ' + (a * o);
     } else {
       const t = b - o;
       steps.push(step('Cut ' + b + ' into ' + t + ' and ' + o + '. Do the tens piece.',
         a + ' × ' + t + ' = ?', a * t,
-        { hint: 'That is really ' + a + ' × ' + (t / 10) + ' with a zero stuck on.',
+        { focus: lit(null, 'tens'), hint: 'That is really ' + a + ' × ' + (t / 10) + ' with a zero stuck on.',
           why: a + ' × ' + t + ' = ' + (a * t) + '.' }));
       steps.push(step('Now the ones piece.', a + ' × ' + o + ' = ?', a * o,
-        { hint: 'One of your times tables.', why: a + ' × ' + o + ' = ' + (a * o) + '.' }));
+        { focus: lit(null, 'ones'), hint: 'One of your times tables.', why: a + ' × ' + o + ' = ' + (a * o) + '.' }));
       steps.push(step('Add the two pieces.', (a * t) + ' + ' + (a * o) + ' = ?', prod,
-        { why: (a * t) + ' + ' + (a * o) + ' = ' + prod + '.' }));
+        { focus: lit('all', 'all'), why: (a * t) + ' + ' + (a * o) + ' = ' + prod + '.' }));
       parts = (a * t) + ' + ' + (a * o);
     }
     return chain({
@@ -146,6 +149,7 @@ export const doubling = {
   id: 'mul.doubling', op: 'mul', name: 'Double, Double', move: 'Double Dash',
   blurb: 'Times 4 is double twice. Times 8 is double three times. No hard facts needed.',
   levels: 3,
+  fits: p => [4, 8, 16].indexOf(p.a) >= 0 && p.b >= 3,
   gen(r, level) {
     if (level <= 1) return { a: 4, b: ri(r, 6, 19) };
     if (level === 2) return { a: 8, b: ri(r, 3, 18) };
@@ -161,7 +165,7 @@ export const doubling = {
       steps.push(step(i === 0 ? 'Double ' + b + '. That is two groups of ' + b + '.'
                               : 'Double it again. Now you have ' + groups + ' groups of ' + b + '.',
         v + ' + ' + v + ' = ?', nv,
-        { hint: i === 0 ? 'Doubles are the easiest facts there are.' : 'Double the tens, double the ones, then add the two.',
+        { focus: lit(null, 'all'), hint: i === 0 ? 'Doubles are the easiest facts there are.' : 'Double the tens, double the ones, then add the two.',
           why: 'Double ' + v + ' is ' + nv + ', which is ' + groups + ' × ' + b + '.' }));
       v = nv;
     }
@@ -187,6 +191,7 @@ export const halvedouble = {
   id: 'mul.halvedouble', op: 'mul', name: 'Halve and Double', move: 'Shape Shift',
   blurb: 'Halve one factor and double the other. The answer does not change, but the numbers get friendly.',
   levels: 3,
+  fits: p => [5, 15, 25, 50].indexOf(p.a) >= 0 && p.b % 2 === 0 && p.b >= 4,
   gen(r, level) {
     if (level <= 1) return { a: 5, b: ri(r, 3, 16) * 2 };
     if (level === 2) return { a: pick(r, [15, 25]), b: ri(r, 2, 11) * 2 };
@@ -200,13 +205,13 @@ export const halvedouble = {
       recap: a + '×' + b + '  is the same rectangle as  ' + dbl + '×' + half + '  =  ' + prod,
       steps: [
         step(b + ' is even, so cut it in half.', b + ' ÷ 2 = ?', half,
-          { hint: 'Half the tens and half the ones: half of ' + (Math.floor(b / 10) * 10) + ' plus half of ' + (b % 10) + '.',
+          { focus: lit(null, 'all'), hint: 'Half the tens and half the ones: half of ' + (Math.floor(b / 10) * 10) + ' plus half of ' + (b % 10) + '.',
             why: 'Half of ' + b + ' is ' + half + '.' }),
         step('To keep it fair, double the other one. Half as many groups, twice as big.',
           a + ' × 2 = ?', dbl,
-          { hint: 'Double ' + a + '.', why: a + ' doubled is ' + dbl + ', and ' + dbl + ' is a lovely number to multiply by.' }),
+          { focus: lit('all'), hint: 'Double ' + a + '.', why: a + ' doubled is ' + dbl + ', and ' + dbl + ' is a lovely number to multiply by.' }),
         step('Same answer, much friendlier.', dbl + ' × ' + half + ' = ?', prod,
-          { hint: dbl % 10 === 0 ? 'Multiply by ' + (dbl / 10) + ' and add a zero.' : 'One you can do.',
+          { focus: lit('all', 'all'), hint: dbl % 10 === 0 ? 'Multiply by ' + (dbl / 10) + ' and add a zero.' : 'One you can do.',
             why: dbl + ' × ' + half + ' = ' + prod + ', so ' + a + ' × ' + b + ' = ' + prod + '.' })
       ],
       board: area(a, [{ w: b, label: a + ' × ' + b, after: -1 }], String(a))
@@ -214,4 +219,44 @@ export const halvedouble = {
   }
 };
 
-export const MUL = [anchor, near10, distribute, doubling, halvedouble];
+/* ----------------------------------------------------------------- scale --- */
+/* Times a round ten. The same "cover the zero, do the small fact, put the zero
+   back" move as adding in tens, which is why it is worth teaching under the
+   same name: he should notice it is the same trick a third time. */
+export const scale = {
+  id: 'mul.scale', op: 'mul', name: 'Work in Tens', move: 'Zoom Out',
+  blurb: 'Cover the zeros, do the small times fact, then put the zeros back.',
+  levels: 3,
+  fits: p => p.a >= 2 && p.a <= 9 && p.b >= 10 && scalePlace(p.b) > 0,
+  gen(r, level) {
+    if (level <= 1) return { a: ri(r, 2, 5), b: ri(r, 2, 9) * 10 };
+    if (level === 2) return { a: ri(r, 3, 9), b: ri(r, 2, 9) * 10 };
+    return { a: ri(r, 3, 9), b: ri(r, 2, 9) * 100 };
+  },
+  build(p) {
+    const { a, b } = p, prod = a * b;
+    const place = scalePlace(b), small = b / place, core = a * small;
+    const unit = place === 10 ? 'tens' : 'hundreds';
+    const zeros = place === 10 ? 'the zero' : 'both zeros';
+    return chain({
+      title: a + ' × ' + b, strategy: this.id, answer: prod,
+      recap: a + ' × ' + small + ' = ' + core + ', so ' + a + ' × ' + b + ' = ' + prod,
+      steps: [
+        step('Put your thumb over ' + zeros + '. What is left is a fact you know.',
+          a + ' × ' + small + ' = ?', core,
+          { focus: lit(null, place === 10 ? 'head' : 'head2'),
+            hint: 'One of your times tables.',
+            why: a + ' × ' + small + ' = ' + core + '.' }),
+        step('Take your thumb away. That answer is ' + core + ' ' + unit + '.',
+          core + ' ' + unit + ' = ?', prod,
+          { focus: lit(null, place === 10 ? 'tail' : 'tail2'),
+            hint: 'Put back exactly as many zeros as you covered up.',
+            why: core + ' ' + unit + ' is ' + prod + '.' })
+      ],
+      board: numberLine(0, prod,
+        [jump(0, core, a + '×' + small, 0), jump(0, prod, a + '×' + b, 1)])
+    });
+  }
+};
+
+export const MUL = [anchor, near10, distribute, doubling, halvedouble, scale];
