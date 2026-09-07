@@ -21,6 +21,12 @@ const { peek } = await import('./js/solve.js');
 async function tap(n){ for (const ch of String(n)) { $$('.key').find(b=>b.textContent===ch).click(); await sleep(10); } }
 if (want.startsWith('gym')) { $$('.gym')[+want.slice(3)].click(); await sleep(150); }
 if (want.startsWith('demo')) { $$('.gym')[+want.slice(4,5)].click(); await sleep(120); $$('.movecard')[+want.slice(5,6)].click(); await sleep(120);
+  // ?method=keep re-rolls until the walkthrough picks that method
+  const wantMethod = P.get('method');
+  if (wantMethod) { for (let i=0;i<40;i++){ if (document.querySelector('.stratline').textContent.toLowerCase().includes(wantMethod.toLowerCase())) break;
+                                            // the re-roll button only exists on a finished walkthrough
+                                            const skip=btn('All of it at once'); if(skip) { skip.click(); await sleep(50); }
+                                            const a=btn('Another example'); if(!a)break; a.click(); await sleep(60); } }
   const clicks = want.length > 6 ? +want.slice(6) : 9;
   for(let i=0;i<clicks;i++){const b=btn('Show me the first step')||btn('Then what?'); if(!b||b.disabled)break; b.click(); await sleep(40);} }
 if (want.startsWith('solve')) { const g=+want.slice(5,6), m=+want.slice(6,7), st=+(want.slice(7)||0);

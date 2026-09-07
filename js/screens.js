@@ -238,52 +238,81 @@ function rungSheet(sh, g) {
     const row = el('div', 'extras');
     body.appendChild(row);
 
-    let demo, k;
+    let demo, k, rows;
+
+    /* Flatten the chain, sub-steps and all.
+       A step that carries a nested chain is exactly the step he cannot do in
+       one go: "32 + 41 = 73" is the whole reason 432 + 41 was hard in the first
+       place. The solve screen lets him ask for that breakdown with a button,
+       but a walkthrough is passive watching, so here it is always shown. The
+       parent stays open with a question mark until its children have answered
+       it, and then fills in. */
+    function rowsOf(chain) {
+      const out = [];
+      chain.steps.forEach((st, i) => {
+        const kids = (st.more && st.more.steps) || [];
+        const parent = { st, depth: 0, label: String(i + 1), kids: kids.length, top: i };
+        out.push(parent);
+        kids.forEach((sub, j) => out.push({ st: sub, depth: 1, label: (i + 1) + '.' + (j + 1), top: i, parent }));
+        parent.answeredAt = out.length;   // how many rows must show before its answer is known
+      });
+      return out;
+    }
 
     const paint = () => {
       clear(work); clear(svgWrap); clear(sumWrap);
-      /* Light the step just revealed, and nothing before the first click. */
-      const live = k > 0 ? demo.steps[k - 1] : null;
-      sumWrap.appendChild(bigSum(demo, live && live.focus, k >= demo.steps.length ? demo.answer : '?'));
-      const svg = render(demo.board, k);
+
+      /* The problem is always lit by the TOP level step in play, never by a
+         sub-step: a sub-step's focus describes the smaller problem, and
+         pointing it at the big one would light the wrong digits. */
+      const live = k > 0 ? rows[k - 1] : null;
+      const owner = live ? (live.parent || live) : null;
+      sumWrap.appendChild(bigSum(demo, owner && owner.st.focus,
+        k >= rows.length ? demo.answer : '?'));
+
+      /* The board only knows about top level steps. */
+      let topDone = 0;
+      for (const r of rows) if (r.depth === 0 && k >= r.answeredAt) topDone++;
+      const svg = render(demo.board, topDone);
       if (svg) svgWrap.appendChild(svg);
+
       for (let i = 0; i < k; i++) {
-        const st = demo.steps[i];
-        /* The step just uncovered is marked. Without it every revealed step
-           looks the same and pressing "then what" adds a line to a list rather
-           than moving his attention to a place. */
-        const r = el('div', 'wrow done' + (i === k - 1 ? ' just' : ''));
-        r.appendChild(el('span', 'wn', i + 1));
+        const row = rows[i];
+        const open = row.depth === 0 && row.kids > 0 && k < row.answeredAt;
+        const r = el('div', 'wrow done'
+          + (row.depth ? ' sub' : '')
+          + (i === k - 1 ? ' just' : '')
+          + (open ? ' open' : ''));
+        r.appendChild(el('span', 'wn', row.label));
         const q = el('div', 'wq');
-        q.appendChild(el('div', 'prompt', st.prompt));
-        q.appendChild(el('div', 'wline', st.line.replace('?', String(st.answer))));
-        if (st.why) q.appendChild(el('div', 'unit', st.why));
+        q.appendChild(el('div', 'prompt', row.st.prompt));
+        q.appendChild(el('div', 'wline', open ? row.st.line : row.st.line.replace('?', String(row.st.answer))));
+        if (open) q.appendChild(el('div', 'unit', 'Too big to do in one go. Take it apart:'));
+        else if (row.st.why) q.appendChild(el('div', 'unit', row.st.why));
         r.appendChild(q);
         work.appendChild(r);
       }
-      if (k >= demo.steps.length) work.appendChild(el('div', 'recap', demo.recap));
+      if (k >= rows.length) work.appendChild(el('div', 'recap', demo.recap));
       buttons();
-      /* Long walkthroughs push the new step below the fold of the sheet, and a
-         highlight he has to scroll to find is not a highlight. */
       const fresh = work.querySelector('.wrow.just');
       if (fresh && k > 1) fresh.scrollIntoView({ block: 'nearest' });
     };
 
     const buttons = () => {
       clear(row);
-      const done = k >= demo.steps.length;
+      const done = k >= rows.length;
       if (!done) {
         row.appendChild(button(k === 0 ? 'Show me the first step' : 'Then what?', 'btn primary', () => {
           k++; sfx.tap(); paint();
         }));
         row.appendChild(button('All of it at once', 'btn ghost', () => {
-          k = demo.steps.length; sfx.page(); paint();
+          k = rows.length; sfx.page(); paint();
         }));
       } else {
         /* Another example is the primary action once one is finished. Lots of
            worked examples is the point of this sheet; one was never enough. */
         row.appendChild(button('Another example ›', 'btn primary', () => {
-          demo = freshDemo(); k = 0; sfx.page(); paint();
+          demo = freshDemo(); rows = rowsOf(demo); k = 0; sfx.page(); paint();
         }));
       }
       row.appendChild(button('I will try it', done ? 'btn primary' : 'btn ghost', () => {
@@ -294,6 +323,7 @@ function rungSheet(sh, g) {
     };
 
     demo = freshDemo();
+    rows = rowsOf(demo);
     k = 0;
     paint();
   });

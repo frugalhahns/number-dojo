@@ -231,6 +231,32 @@ export async function run() {
     note('highlight walked: ' + seen.join('  then  '));
   }
 
+  /* ------------------------------------- the walkthrough opens sub-steps --- */
+  {
+    /* Work in Tens at level 2 always has a step that carries a nested chain, so
+       its walkthrough must always show that chain rather than leaping over it.
+       This is the whole complaint that prompted it: "32 + 41 = 73" straight up
+       is the one step he cannot do. */
+    S.lv['add.s3'] = 2; save();
+    if (btn('‹ Back')) btn('‹ Back').click();
+    await until(() => $$('.movecard').length > 0, 'the gym');
+    if (btn('‹ Home')) { btn('‹ Home').click(); await until(() => !!$('.gyms'), 'home'); }
+    $$('.gym')[0].click();
+    await until(() => $$('.movecard').length > 0, 'the Sprout Gym ladder');
+    $$('.movecard').find(c => c.textContent.includes('Adding whole tens')).click();
+    await until(() => !$('#sheet').classList.contains('hidden'), 'the rung sheet');
+    btn('All of it at once').click();
+    await sleep(120);
+    const subs = $$('#sheet .wrow.sub');
+    ok(subs.length >= 2, 'the walkthrough opens the nested step up rather than leaping it, saw ' + subs.length + ' sub-steps');
+    ok($$('#sheet .wrow').length > $$('#sheet .wrow.sub').length,
+       'and still shows the top level steps around them');
+    note('nested walkthrough: ' + $$('#sheet .wrow').map(r => (r.classList.contains('sub') ? '   ' : '') +
+      (r.querySelector('.wline') || {}).textContent).join(' / '));
+    $('#sheet-close').click();
+    await sleep(40);
+  }
+
   /* --------------------------------------------- breaking a step down ----- */
   {
     /* Work through until a step offers a nested chain, then take it. Work in
@@ -238,7 +264,9 @@ export async function run() {
     S.lv['add.s3'] = 2; save();
     let found = false;
     for (let attempt = 0; attempt < 14 && !found; attempt++) {
-      btn('‹ Back').click();
+      /* Tolerant of where the previous section left off: on a solve screen
+         there is a Back chip, on the gym ladder there is not. */
+      if (btn('‹ Back')) btn('‹ Back').click();
       await until(() => $$('.movecard').length > 0, 'the gym');
       const card = $$('.movecard').find(c => c.textContent.includes('Adding whole tens'));
       card.click();
@@ -248,9 +276,9 @@ export async function run() {
       const p0 = peek();
       await tap(p0.step.answer);                        // step 1: pocket the ones
       await sleep(340);
-      if (btn('Break this step down')) {
+      if (btn('Break it up')) {
         const parent = peek();
-        btn('Break this step down').click();
+        btn('Break it up').click();
         await sleep(120);
         const sub = peek();
         ok(sub.nested === 1, 'breaking down opened a nested chain');

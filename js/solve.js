@@ -402,7 +402,11 @@ function showSolved(clean, bumped, solo) {
 function extras() {
   const row = el('div', 'extras');
   const st = view.steps[idx];
-  if (st && st.more) row.appendChild(button('Break this step down', 'btn ghost', breakDown));
+  /* First in the row and visibly offered, not tucked in among the others. This
+     is the button for the step he cannot do, so it is the one he has to find
+     without being told. The walkthrough now opens these up on its own, which is
+     where he learns that the option exists at all. */
+  if (st && st.more) row.appendChild(button('This one is big. Break it up ›', 'btn open', breakDown));
   if (st && misses === 0) {
     row.appendChild(button('Give me a hint', 'btn ghost', () => {
       speak(st.hint || 'Look at what changed from the line above.', 'cool');

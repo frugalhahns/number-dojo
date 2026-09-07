@@ -261,6 +261,21 @@ svg.board .grp.dim { opacity: .3; }
    poor trade. */
 .wrow.just { border-color: var(--key); border-width: 2px; background: var(--card2); opacity: 1; animation: uncover .32s ease; }
 .wrow.just .wn { background: var(--key); color: var(--key-ink); border-color: var(--key); }
+/* A nested step: the smaller problem opened up inside the step that needed it.
+   Indented and hung off a rule so the shape of the working is visible at a
+   glance, rather than reading as one long undifferentiated list. */
+.wrow.sub {
+  margin-left: 26px;
+  border-left: 3px solid var(--key);
+  border-radius: 6px 12px 12px 6px;
+  background: var(--bg2);
+}
+.wrow.sub .wn { width: 30px; font-size: .72rem; }
+.wrow.sub .prompt { font-size: .95rem; }
+/* A parent still waiting for its children to answer it. */
+.wrow.open .wline { color: var(--ink-dim); }
+.wrow.open .unit { color: var(--key); font-weight: 700; }
+
 @keyframes uncover {
   from { opacity: 0; transform: translateY(-7px); }
   to   { opacity: 1; transform: none; }
@@ -336,6 +351,10 @@ svg.board .grp.dim { opacity: .3; }
 .btn:hover { border-color: var(--key); }
 .btn.primary { background: var(--key); color: var(--key-ink); border-color: var(--key); }
 .btn.danger { border-color: var(--rose); color: var(--rose); }
+/* The offer to take a step apart. Not the primary action, because the primary
+   action is always answering, but never invisible either. */
+.btn.open { border-color: var(--key); border-width: 2px; color: var(--key); font-weight: 800; }
+.btn.open:hover { background: color-mix(in srgb, var(--key) 14%, transparent); }
 .btn:disabled { opacity: .5; cursor: default; }
 
 /* ---------------------------------------------------------------- reward --- */
