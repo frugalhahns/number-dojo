@@ -41,17 +41,24 @@ function operand(text, token, dimRest) {
 }
 
 /* The problem, big, with `focus` lit. Pass a null focus for a plain one.
-   `tail` is what goes after the equals: '?' while he is working, or the answer
-   once he is not. */
+   `tail` is what goes after the equals: '?' while he is working, the answer
+   once he is not, or an empty string for no equals sign at all, which is what
+   the worked examples page wants when it restates the problem beside a step. */
 export function bigSum(chain, focus, tail) {
   const wrap = el('div', 'bigsum');
-  if (!chain.oper) { wrap.textContent = chain.title + ' = ' + (tail === undefined ? '?' : tail); return wrap; }
+  if (!chain.oper) {
+    const t0 = tail === undefined ? '?' : String(tail);
+    wrap.textContent = chain.title + (t0 === '' ? '' : ' = ' + t0);
+    return wrap;
+  }
   const any = !!(focus && (focus.a || focus.b));
   wrap.appendChild(operand(chain.lhs, any ? focus.a : null, any));
   wrap.appendChild(el('span', 'oper', chain.oper));
   wrap.appendChild(operand(chain.rhs, any ? focus.b : null, any));
-  wrap.appendChild(el('span', 'oper', '='));
   const t = tail === undefined ? '?' : String(tail);
-  wrap.appendChild(el('span', t === '?' ? 'qmark' : 'answer', t));
+  if (t !== '') {
+    wrap.appendChild(el('span', 'oper', '='));
+    wrap.appendChild(el('span', t === '?' ? 'qmark' : 'answer', t));
+  }
   return wrap;
 }

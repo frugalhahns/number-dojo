@@ -110,6 +110,29 @@ export async function run() {
     ok(!!$('.stratline'), gymName + ' demo names the method it is using');
     ok($$('#sheet .bigsum .lit').length > 0,
        gymName + ' the walkthrough lights up the digits it is changing, not just the exercise');
+
+    /* Lots of worked examples is the point of this sheet, so a finished one has
+       to lead straight into another, and the next one should not simply be the
+       same problem again. */
+    {
+      const first = $('#sheet .bigsum').textContent;
+      const another = btn('Another example');
+      ok(!!another, gymName + ' a finished walkthrough offers another example');
+      if (another) {
+        another.click();
+        await sleep(120);
+        ok($('#sheet .bigsum').textContent !== first,
+           gymName + ' the second example is a different problem (' + first + ' then ' + $('#sheet .bigsum').textContent + ')');
+        ok($$('#sheet .bigsum .lit').length === 0, gymName + ' the new example starts unlit');
+        ok(!!btn('Show me the first step'), gymName + ' the new example starts at step one');
+        /* and the shortcut that skips to the end */
+        btn('All of it at once').click();
+        await sleep(80);
+        ok($$('#sheet .work.demo .wrow').length >= 2,
+           gymName + ' "all of it at once" shows the whole solution, saw ' + $$('#sheet .work.demo .wrow').length + ' steps');
+        note(gymName + ' second example: ' + $('#sheet .bigsum').textContent);
+      }
+    }
     ok(!!$('.work.demo .wrow'), gymName + ' demo showed working out');
     btn('I will try it').click();
     await until(() => !!$('.wrow.live'), gymName + ' run to start');

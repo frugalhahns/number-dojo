@@ -7,7 +7,12 @@
 /* A seeded generator, so a problem can be replayed exactly (the practice sheet
    and the self test both need that) while still feeling random to him. */
 export function rng(seed) {
-  let s = (seed | 0) || 1;
+  /* Scramble the seed before use. A raw xorshift started on two nearby seeds
+     draws two similar first numbers, which showed up as a page of worked
+     examples containing 7 x 6 three times. */
+  let s = Math.imul(seed | 0, 2654435761) | 0;
+  s = (s ^ (s >>> 15)) | 0;
+  if (s === 0) s = 1;
   return function () {
     s ^= s << 13; s ^= s >>> 17; s ^= s << 5; s |= 0;
     return ((s >>> 0) % 100000) / 100000;

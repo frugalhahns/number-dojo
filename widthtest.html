@@ -21,15 +21,17 @@
      common ones, a tablet, and the point either side of the 620px break. */
   const WIDTHS = [320, 360, 390, 414, 430, 600, 640, 768, 900, 1200];
   const SCREENS = ['home', 'gym0', 'solve212', 'team', 'demo10'];
+  /* The worked examples page is its own document, not a state of the app. */
+  const PAGES = ['examples.html?op=add&n=2', 'examples.html?op=div&n=2'];
   const out = document.getElementById('out');
   const log = [];
   let fails = 0;
 
-  for (const at of SCREENS) {
+  for (const at of SCREENS.concat(PAGES)) {
     for (const w of WIDTHS) {
       const f = document.createElement('iframe');
       f.style.cssText = 'width:' + w + 'px;height:1500px;border:0';
-      f.src = 'shot.html?at=' + at + '&seed=1&w=' + w;
+      f.src = at.indexOf('.html') >= 0 ? at + '&w=' + w : 'shot.html?at=' + at + '&seed=1&w=' + w;
       document.getElementById('frames').appendChild(f);
       await new Promise(r => { f.onload = r; setTimeout(r, 8000); });
       await new Promise(r => setTimeout(r, 900));
@@ -49,7 +51,7 @@
       const overflow = d.documentElement.scrollWidth > cw.innerWidth + 0.5;
       const okRow = !bad.length && !overflow && !tiny;
       if (!okRow) fails++;
-      log.push((okRow ? 'ok   ' : 'FAIL ') + at.padEnd(9) + String(w).padStart(5) + 'px  scroll=' + d.documentElement.scrollWidth +
+      log.push((okRow ? 'ok   ' : 'FAIL ') + at.padEnd(26) + String(w).padStart(5) + 'px  scroll=' + d.documentElement.scrollWidth +
         (bad.length ? '  sticking out: ' + bad.slice(0, 3).join(' ') : '') +
         (tiny ? '  ' + tiny + ' buttons under 34px tall' : ''));
       f.remove();

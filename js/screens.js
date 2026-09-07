@@ -173,9 +173,25 @@ export function gym(op) {
    it is also where the method gets named: he sees "Bridge to Ten" happen rather
    than being asked to pick it off a list. */
 function rungSheet(sh, g) {
-  const lv = levelOf(sh.id);
-  const demo = makeForShape(sh.id, lv, (Math.random() * 1e9) | 0);
-  const strat = BY_STRATEGY[demo.strategy];
+  let shown = 0;                    // how many examples he has watched
+  let lastStrategy = null;
+
+  /* Draw another example of this rung, preferring a method he did not just
+     watch. A rung that can be done four ways should show him four ways rather
+     than the same one over and over, because noticing that there is more than
+     one road is most of the point. */
+  function freshDemo() {
+    let pickCandidate = null;
+    for (let i = 0; i < 30; i++) {
+      const c = makeForShape(sh.id, levelOf(sh.id), (Math.random() * 1e9) | 0);
+      if (!pickCandidate) pickCandidate = c;
+      if (c.strategy !== lastStrategy) { pickCandidate = c; break; }
+    }
+    lastStrategy = pickCandidate.strategy;
+    shown++;
+    return pickCandidate;
+  }
+
   sheet(sh.example, body => {
     body.appendChild(el('p', 'idea', sh.name + '. ' + g.idea));
     /* The problem sits above the walkthrough and is redrawn on every click, so
@@ -184,47 +200,66 @@ function rungSheet(sh, g) {
        just did something to. */
     const sumWrap = el('div', 'sumwrap');
     body.appendChild(sumWrap);
-    body.appendChild(el('div', 'stratline', 'One way to do this one: ' + strat.name + '. ' + strat.blurb));
+    const strapline = el('div', 'stratline');
+    body.appendChild(strapline);
     const svgWrap = el('div', 'boardwrap');
     body.appendChild(svgWrap);
     const work = el('div', 'work demo');
     body.appendChild(work);
-    const paint = k => {
+    const row = el('div', 'extras');
+    body.appendChild(row);
+
+    let demo, k;
+
+    const paint = () => {
       clear(work); clear(svgWrap); clear(sumWrap);
       /* Light the step just revealed, and nothing before the first click. */
-      const shown = k > 0 ? demo.steps[k - 1] : null;
-      sumWrap.appendChild(bigSum(demo, shown && shown.focus,
-        k >= demo.steps.length ? demo.answer : '?'));
+      const live = k > 0 ? demo.steps[k - 1] : null;
+      sumWrap.appendChild(bigSum(demo, live && live.focus, k >= demo.steps.length ? demo.answer : '?'));
       const svg = render(demo.board, k);
       if (svg) svgWrap.appendChild(svg);
       for (let i = 0; i < k; i++) {
         const st = demo.steps[i];
-        const row = el('div', 'wrow done');
-        row.appendChild(el('span', 'wn', i + 1));
+        const r = el('div', 'wrow done');
+        r.appendChild(el('span', 'wn', i + 1));
         const q = el('div', 'wq');
         q.appendChild(el('div', 'prompt', st.prompt));
         q.appendChild(el('div', 'wline', st.line.replace('?', String(st.answer))));
         if (st.why) q.appendChild(el('div', 'unit', st.why));
-        row.appendChild(q);
-        work.appendChild(row);
+        r.appendChild(q);
+        work.appendChild(r);
       }
       if (k >= demo.steps.length) work.appendChild(el('div', 'recap', demo.recap));
+      buttons();
     };
-    let k = 0;
-    paint(0);
-    const row = el('div', 'extras');
-    const nextBtn = button('Show me the first step', 'btn primary', () => {
-      k = Math.min(demo.steps.length, k + 1);
-      paint(k);
-      sfx.tap();
-      nextBtn.textContent = k >= demo.steps.length ? 'That is the whole thing' : 'Then what?';
-      nextBtn.disabled = k >= demo.steps.length;
-    });
-    row.appendChild(nextBtn);
-    row.appendChild(button('I will try it', 'btn ghost', () => {
-      S.seen[sh.id] = true; save(); closeSheet(); begin(g, [sh.id], false);
-    }));
-    body.appendChild(row);
+
+    const buttons = () => {
+      clear(row);
+      const done = k >= demo.steps.length;
+      if (!done) {
+        row.appendChild(button(k === 0 ? 'Show me the first step' : 'Then what?', 'btn primary', () => {
+          k++; sfx.tap(); paint();
+        }));
+        row.appendChild(button('All of it at once', 'btn ghost', () => {
+          k = demo.steps.length; sfx.page(); paint();
+        }));
+      } else {
+        /* Another example is the primary action once one is finished. Lots of
+           worked examples is the point of this sheet; one was never enough. */
+        row.appendChild(button('Another example ›', 'btn primary', () => {
+          demo = freshDemo(); k = 0; sfx.page(); paint();
+        }));
+      }
+      row.appendChild(button('I will try it', done ? 'btn primary' : 'btn ghost', () => {
+        S.seen[sh.id] = true; save(); closeSheet(); begin(g, [sh.id], false);
+      }));
+      const strat = BY_STRATEGY[demo.strategy];
+      strapline.textContent = 'Example ' + shown + '. This one done by ' + strat.name + ': ' + strat.blurb;
+    };
+
+    demo = freshDemo();
+    k = 0;
+    paint();
   });
 }
 
@@ -397,6 +432,7 @@ function grownupSheet() {
     }
     body.appendChild(t);
     const row = el('div', 'extras');
+    row.appendChild(button('Worked examples (printable)', 'btn primary', () => { location.href = 'examples.html?op=add'; }));
     row.appendChild(button('Sound: ' + (S.sound ? 'on' : 'off'), 'btn ghost', e => {
       S.sound = !S.sound; save();
       import('./audio.js').then(m => m.setSound(S.sound));

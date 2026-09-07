@@ -46,12 +46,17 @@ export const flip = {
         step('You are not at ' + n + ' yet. How much short are you?',
           n + ' − ' + easy + ' = ?', left,
           { focus: lit('all'), hint: 'A small gap.', why: n + ' − ' + easy + ' = ' + left + ' still to cover.' }),
-        step('How many more ' + d + 's is that ' + left + '?',
-          left + ' ÷ ' + d + ' = ?', more,
-          { focus: lit(null, 'all'), hint: 'A small one. How many whole groups of that size fit into what is left?', why: left + ' is ' + more + ' more ' + d + '' + (more > 1 ? 's' : '') + '.' }),
+        step(more === 1 ? 'And ' + left + ' is exactly one more ' + d + '. So how many altogether?'
+                        : 'How many more ' + d + 's is that ' + left + '?',
+          more === 1 ? '5 + 1 = ?' : left + ' ÷ ' + d + ' = ?', more === 1 ? q : more,
+          { focus: lit(null, 'all'),
+            hint: more === 1 ? 'One more group on top of the five.' : 'A small one. How many whole groups of that size fit into what is left?',
+            why: more === 1 ? 'Five ' + d + 's and one more is ' + q + ' of them.'
+                            : left + ' is ' + more + ' more ' + d + 's.' })
+      ].concat(more === 1 ? [] : [
         step('Five, plus the extras.', '5 + ' + more + ' = ?', q,
           { focus: lit('all', 'all'), why: 'Altogether ' + q + ' ' + d + 's make ' + n + ', so ' + n + ' ÷ ' + d + ' = ' + q + '.' })
-      ],
+      ]),
       board: area(d, [{ w: 5, label: d + '×5 = ' + easy, after: 0 }, { w: more, label: d + '×' + more + ' = ' + left, after: 2 }], String(d))
     });
   }

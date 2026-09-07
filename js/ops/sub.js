@@ -82,9 +82,9 @@ export const back = {
           why: a + ' − ' + t + ' = ' + mid + '.' }));
     }
     const down = mid % 10, left = r0 - down;
-    steps.push(step('Now the ' + r0 + '. Do not do it all at once. Use just enough to land on ' + (mid - down) + '.',
+    steps.push(step((t > 0 ? 'Now the ' + r0 + '. ' : 'Take the ' + r0 + ' off, but ') + 'not all at once. Use just enough to land on ' + (mid - down) + '.',
       mid + ' − ? = ' + (mid - down), down,
-      { focus: lit(null, 'ones'), hint: 'The ones digit of ' + mid + ' is exactly how far it is to the round ten below.',
+      { focus: lit('ones', 'ones'), hint: 'The ones digit of ' + mid + ' is exactly how far it is to the round ten below.',
         why: 'Spend ' + down + ' and you are standing on ' + (mid - down) + '.' }));
     steps.push(step('You spent ' + down + ' of the ' + r0 + '. How much is still to come off?',
       r0 + ' − ' + down + ' = ?', left,

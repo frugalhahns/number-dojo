@@ -106,6 +106,11 @@ that matters fixed. They are the ones worth watching him get.
 - **Difficulty only ever goes up.** Three problems in a row with no misses moves
   a move up a level, and nothing moves it back down. A bad five minutes cannot
   undo a good week.
+- **As many worked examples as he wants.** Tapping a rung opens a walkthrough,
+  and finishing one offers **another example** rather than pushing him into
+  practice. Each new one prefers a method he did not just watch, so a rung that
+  can be done four ways shows him four ways. There is also **all of it at once**
+  for when he only wants to check the shape of the answer.
 - **He can always skip the steps.** *I can do this in my head* collapses the
   whole chain to one blank worth double. Getting good at this means needing
   fewer steps, so the app has to let him prove it and pay him for it. Getting it
@@ -121,6 +126,23 @@ Twenty-two lines, forty-eight forms, all of them collectable.
 Three player slots, so a brother can have his own team.
 
 ---
+
+## The worked examples page
+
+`examples.html` prints as many fully solved problems as you like, for every rung
+of an operation, with each step restating the problem and lighting the digits
+that step is working on. It is reachable from **Grown-ups** in the app, and it
+is the thing to hand over when somebody wants to see what he is being taught, or
+to sit next to him with a pencil.
+
+```
+https://frugalhahns.github.io/number-dojo/examples.html?op=sub&n=6&level=2
+```
+
+`op` is `add`, `sub`, `mul` or `div`; `n` is examples per rung; `level` is 1 to 3,
+or omitted to walk the levels so a rung shows its easy case and its hard case
+side by side. The print stylesheet drops the controls and switches to black on
+white, because a dark page eats a cartridge.
 
 ## Running it
 
@@ -143,8 +165,8 @@ a headless run can wait for the answer instead of guessing.
 | Page | What it holds down |
 |---|---|
 | `selftest.html` | Content. ~1,700,000 checks. Builds every strategy at every level 500 times over and proves each chain lands on the right answer, that no step goes negative or fractional, that every line has exactly one blank, that no hint contains its own answer, that nested chains answer the question their parent asked, that boards render at every point without throwing and never draw off their own axis, that each level can make at least 14 different problems, that every rung of the ladder always finds a strategy willing to explain its numbers and rarely has to redraw to do it, that every rung really serves the digit counts its name promises, that every step lights up part of the problem and that the part it names actually exists in those digits, that every sprite file exists, that the `localStorage` key in `index.html` has not drifted from `js/state.js`, and that nothing anywhere uses an em dash. |
-| `flowtest.html` | Playability. Fetches `index.html`, injects its real body, and then clicks the real buttons: picks a starter, plays a five problem run in all four gyms through the on-screen keypad, gets one wrong twice on purpose and checks the first miss withholds the answer and the second gives it, opens a nested chain and checks it comes back out into the step it left, checks the highlight starts off, comes on at the first click of the walkthrough, and moves across the problem as the steps go by, wins one in its head, opens all three sheets, and reads the save back out of `localStorage`. |
-| `widthtest.html` | Layout. Loads five screens at ten viewport widths from 320px up in iframes, and fails if anything sticks out sideways or if any button is under 34px tall. Iframes rather than a resized window because **headless Chrome will not make a window narrower than 500 CSS pixels**, so a `--window-size=360` screenshot is a crop of a 500 wide layout and proves nothing. |
+| `flowtest.html` | Playability. Fetches `index.html`, injects its real body, and then clicks the real buttons: picks a starter, plays a five problem run in all four gyms through the on-screen keypad, gets one wrong twice on purpose and checks the first miss withholds the answer and the second gives it, opens a nested chain and checks it comes back out into the step it left, checks the highlight starts off, comes on at the first click of the walkthrough, and moves across the problem as the steps go by, asks a finished walkthrough for another example and checks it is a different problem that starts over from step one, wins one in its head, opens all three sheets, and reads the save back out of `localStorage`. |
+| `widthtest.html` | Layout. Loads five app screens and the worked examples page at ten viewport widths from 320px up in iframes, and fails if anything sticks out sideways or if any button is under 34px tall. Iframes rather than a resized window because **headless Chrome will not make a window narrower than 500 CSS pixels**, so a `--window-size=360` screenshot is a crop of a 500 wide layout and proves nothing. |
 
 Run them headless from the repository root:
 
@@ -183,6 +205,7 @@ out at 980px and every mobile screenshot is wrong.
 
 ```
 index.html          the shell, and the pre-paint theme resolver
+examples.html       fully worked solutions, printable
 css/dojo.css        one stylesheet, two themes, four gym palettes via --key
 js/
   main.js           boot, physical keyboard, escape
@@ -196,6 +219,7 @@ js/
   solve.js          the solve loop: one live blank, misses, nesting, in-my-head
   screens.js        home, the ladder, the demo sheet, rewards, team, grown-ups
   problem.js        the problem itself, with the digits in play lit up
+  examples.js       the printable worked examples page
   board.js          the pictures: number line, base ten blocks, area, groups
   buddy.js          sprites and the one sentence the buddy says
   ui.js             DOM helpers, sheets, sparkles, confetti

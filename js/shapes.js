@@ -66,8 +66,14 @@ export const ADD_SHAPES = [
         const tens = ri(r, 1, 8) * 10 + ri(r, 5, 9);
         return { a: tens * 10 + ri(r, 1, 9), b: ri(r, 11 - (tens % 10), 9) * 10 };
       }
-      const huns = ri(r, 1, 8) * 10 + ri(r, 2, 9);    // whole hundreds instead
-      return { a: huns * 100 + ri(r, 1, 9) * 10 + ri(r, 1, 9), b: ri(r, 2, 9) * 100 };
+      /* Whole hundreds instead of whole tens, still on a three digit number.
+         Four digit numbers are past where this ladder is aimed. The addend is
+         drawn first and the big number is kept at least as large, because a
+         "work in hundreds" problem where the round number is the bigger of the
+         two reads backwards and the strategy declines it. */
+      const k = ri(r, 1, 4);
+      const h = ri(r, k, 9 - k);
+      return { a: h * 100 + ri(r, 1, 9) * 10 + ri(r, 1, 9), b: k * 100 };
     }
   },
   {
@@ -82,7 +88,9 @@ export const ADD_SHAPES = [
         const o1 = ri(r, 4, 9), o2 = ri(r, 11 - o1, 9);
         return { a: ri(r, 1, 7) * 10 + o1, b: ri(r, 1, 7) * 10 + o2 };
       }
-      return { a: ri(r, 11, 89), b: ri(r, 11, 89) };
+      /* No round tens: "53 + 20" belongs on the whole-tens rung, and landing
+         it here would teach him the wrong thing about what this rung is. */
+      return { a: ri(r, 1, 8) * 10 + ri(r, 1, 9), b: ri(r, 1, 8) * 10 + ri(r, 1, 9) };
     }
   },
   {
@@ -99,7 +107,9 @@ export const ADD_SHAPES = [
         return { a: ri(r, 1, 4) * 100 + t1 * 10 + o1,
                  b: ri(r, 1, 4) * 100 + ri(r, 1, 8 - t1) * 10 + ri(r, 11 - o1, 9) };
       }
-      return { a: ri(r, 111, 899), b: ri(r, 111, 899) };
+      /* Every digit non zero. "90 + 0 = 90" is a step that asks nothing. */
+      return { a: ri(r, 1, 8) * 100 + ri(r, 1, 9) * 10 + ri(r, 1, 9),
+               b: ri(r, 1, 8) * 100 + ri(r, 1, 9) * 10 + ri(r, 1, 9) };
     }
   }
 ];
@@ -148,8 +158,9 @@ export const SUB_SHAPES = [
         const tens = ri(r, 2, 8) * 10 + ri(r, 1, 4);
         return { a: tens * 10 + ri(r, 1, 9), b: ri(r, (tens % 10) + 1, 9) * 10 };
       }
-      const huns = ri(r, 2, 8) * 10 + ri(r, 1, 4);    // whole hundreds instead
-      return { a: huns * 100 + ri(r, 0, 9) * 10 + ri(r, 1, 9), b: ri(r, (huns % 10) + 1, 9) * 100 };
+      /* Whole hundreds, still on a three digit number. */
+      const h = ri(r, 3, 9);
+      return { a: h * 100 + ri(r, 1, 9) * 10 + ri(r, 1, 9), b: ri(r, 1, h - 1) * 100 };
     }
   },
   {
@@ -168,7 +179,7 @@ export const SUB_SHAPES = [
          that 71 - 68 should be counted up rather than taken apart is the point
          of having learned both. */
       return coin(r,
-        rr => { const b = ri(rr, 21, 79); return { a: b + ri(rr, 3, 14), b }; },
+        rr => { const b = ri(rr, 2, 7) * 10 + ri(rr, 1, 9); return { a: b + ri(rr, 3, 14), b }; },
         rr => { const o1 = ri(rr, 1, 7); return { a: ri(rr, 4, 9) * 10 + o1, b: ri(rr, 1, 3) * 10 + ri(rr, o1 + 1, 9) }; });
     }
   },
@@ -187,7 +198,8 @@ export const SUB_SHAPES = [
                  b: ri(r, 1, 3) * 100 + ri(r, 1, t1 - 1) * 10 + ri(r, o1 + 1, 9) };
       }
       return coin(r,
-        rr => { const b = ri(rr, 210, 780); return { a: b + ri(rr, 3, 16), b }; },
+        rr => { const b = ri(rr, 2, 7) * 100 + ri(rr, 1, 9) * 10 + ri(rr, 1, 9);
+                return { a: b + ri(rr, 3, 16), b }; },
         rr => { const o1 = ri(rr, 1, 7), t1 = ri(rr, 4, 9);
                 return { a: ri(rr, 4, 9) * 100 + t1 * 10 + o1,
                          b: ri(rr, 1, 3) * 100 + ri(rr, 1, t1 - 1) * 10 + ri(rr, o1 + 1, 9) }; });

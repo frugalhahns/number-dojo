@@ -400,3 +400,57 @@ svg.board .grp.dim { opacity: .3; }
   .badges { display: none; }
   svg.board { max-height: 190px; }
 }
+
+/* ------------------------------------------------- the worked examples page --- */
+#sheetpage { max-width: 940px; }
+.exbar { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; justify-content: center; padding: 6px 0; }
+.exbar .btn { padding: 8px 13px; font-size: .86rem; }
+.exgap { width: 14px; }
+.exsec { margin: 22px 0 6px; }
+.exsech {
+  display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap;
+  font-size: 1rem; font-weight: 700; margin: 0 0 8px;
+  border-bottom: 2px solid var(--line); padding-bottom: 6px;
+}
+.exsech span { color: var(--ink-dim); font-weight: 600; }
+.ex {
+  background: var(--card); border: 1px solid var(--line); border-radius: 12px;
+  padding: 10px 14px; margin-bottom: 10px; break-inside: avoid;
+}
+.exhead { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.exhead .bigsum { font-size: 1.5rem; }
+.exn {
+  flex: none; width: 24px; height: 24px; border-radius: 99px; background: var(--card2);
+  border: 1px solid var(--line); display: grid; place-items: center; font-size: .76rem; font-weight: 800;
+  color: var(--ink-dim); align-self: center;
+}
+.exmethod { color: var(--key); font-weight: 700; font-size: .88rem; margin-left: auto; }
+.exlv { color: var(--ink-dim); font-size: .76rem; }
+.exsteps { margin: 8px 0 0; padding-left: 22px; display: grid; gap: 5px; }
+.exsteps li { display: grid; grid-template-columns: minmax(96px, 1fr) minmax(120px, 1fr) 2.1fr; gap: 12px; align-items: baseline; }
+.bigsum.mini { font-size: .95rem; font-weight: 700; letter-spacing: 0; }
+.bigsum.mini .lit { box-shadow: 0 2px 0 0 var(--key); animation: none; padding: 0 .08em; }
+.bigsum.mini .oper { margin: 0 .16em; }
+.exline { font-family: ui-monospace, "SFMono-Regular", Menlo, monospace; font-weight: 700; font-size: .95rem; }
+.exsay { color: var(--ink-dim); font-size: .87rem; }
+.exrecap { font-family: ui-monospace, Menlo, monospace; color: var(--ink-dim); font-size: .85rem; margin-top: 7px; padding-left: 22px; }
+
+@media (max-width: 700px) {
+  .exsteps li { grid-template-columns: 1fr; gap: 2px; }
+  .exhead .bigsum { font-size: 1.25rem; }
+  .exmethod { margin-left: 0; }
+}
+
+/* Printing. Ink is expensive and a dark page eats a cartridge. */
+@media print {
+  html, body { background: #fff !important; color: #000 !important; }
+  .exbar, #fx, #toast, .idea { display: none !important; }
+  .ex { border: 1px solid #bbb; background: #fff; box-shadow: none; }
+  .exn { border-color: #bbb; background: #fff; color: #444; }
+  .exsech { border-bottom-color: #666; }
+  .exsay, .exlv, .exrecap, .exsech span { color: #444 !important; }
+  .exmethod, .rex, .bigsum .answer, .bigsum .qmark { color: #000 !important; }
+  .bigsum .lit { background: #eee !important; box-shadow: 0 2px 0 0 #000 !important; color: #000 !important; }
+  .bigsum .dimd { opacity: .45; }
+  .title { font-size: 1.3rem; }
+}

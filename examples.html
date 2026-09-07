@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Number Dojo: worked examples</title>
+<meta name="description" content="Fully worked step by step solutions for every kind of problem in Number Dojo. Printable.">
+<script>
+  (function () {
+    var pref = 'auto';
+    try {
+      var slot = localStorage.getItem('nd.slot');
+      if (slot !== '2' && slot !== '3') slot = '1';
+      var key = slot === '1' ? 'nd.save.v1' : 'nd.save.v1.s' + slot;
+      pref = (JSON.parse(localStorage.getItem(key) || '{}').theme) || 'auto';
+    } catch (e) {}
+    var light = pref === 'light' ||
+      (pref !== 'dark' && window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches);
+    document.documentElement.dataset.theme = light ? 'light' : 'dark';
+  })();
+</script>
+<link rel="stylesheet" href="css/dojo.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='26' font-size='26'>&#129518;</text></svg>">
+</head>
+<body data-hue="grass">
+<main id="sheetpage" class="screen"></main>
+<div id="toast" class="hidden" role="status"></div>
+<div id="fx" aria-hidden="true"></div>
+<script type="module" src="js/examples.js"></script>
+</body>
+</html>
